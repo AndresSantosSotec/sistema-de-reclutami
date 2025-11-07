@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
-import { User, Envelope, Phone, LinkedinLogo, MagnifyingGlass, Calendar, ClipboardText } from '@phosphor-icons/react'
+import { User, Envelope, Phone, LinkedinLogo, MagnifyingGlass, Calendar, ClipboardText, Star } from '@phosphor-icons/react'
 import type { Candidate, Application, Evaluation, StatusChange, JobOffer } from '@/lib/types'
 import { statusLabels, statusColors, formatDate, formatDateTime, evaluationTypeLabels } from '@/lib/constants'
 
@@ -15,9 +15,10 @@ interface CandidatesProps {
   evaluations: Evaluation[]
   statusChanges: StatusChange[]
   jobs: JobOffer[]
+  onAddToTalentBank?: (candidateId: string) => void
 }
 
-export function Candidates({ candidates, applications, evaluations, statusChanges, jobs }: CandidatesProps) {
+export function Candidates({ candidates, applications, evaluations, statusChanges, jobs, onAddToTalentBank }: CandidatesProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
 
@@ -286,6 +287,23 @@ export function Candidates({ candidates, applications, evaluations, statusChange
                   </div>
                 )}
               </div>
+
+              {onAddToTalentBank && (
+                <>
+                  <Separator />
+                  <Button 
+                    onClick={() => {
+                      onAddToTalentBank(selectedCandidate.id)
+                      setSelectedCandidate(null)
+                    }}
+                    className="w-full gap-2"
+                    variant="outline"
+                  >
+                    <Star size={18} weight="duotone" />
+                    Agregar al Banco de Talento
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </SheetContent>

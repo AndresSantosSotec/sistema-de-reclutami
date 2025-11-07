@@ -1,14 +1,14 @@
 # Planning Guide
 
-A comprehensive institutional recruitment platform that transforms how organizations manage their complete hiring lifecycle from job posting to candidate onboarding, with dual interfaces for candidates and administrative staff.
+A comprehensive institutional recruitment platform that transforms how organizations manage their complete hiring lifecycle from job posting to candidate onboarding, with dual interfaces for candidates and administrative staff. Built with Coosajer's institutional brand identity featuring deep corporate blue (#004082) and vibrant green (#4EAD33) for a professional yet approachable experience.
 
 **Experience Qualities**: 
-1. **Professional yet Approachable** - Balance corporate credibility with human warmth through soft gradients, rounded corners, and friendly micro-interactions that make both candidates and HR staff feel confident and comfortable.
+1. **Professional yet Approachable** - Balance corporate credibility with human warmth through the institutional color palette, rounded corners, and friendly micro-interactions that make both candidates and HR staff feel confident and comfortable.
 2. **Effortlessly Efficient** - Streamline complex recruitment workflows into intuitive, progressive steps that guide users naturally through applications, evaluations, and hiring decisions without cognitive overload.
 3. **Transparently Informative** - Provide real-time visibility into application status, recruitment metrics, and candidate progress through clear visual hierarchies, status indicators, and contextual notifications.
 
 **Complexity Level**: Complex Application (advanced functionality, accounts)
-  - Requires dual user roles (candidates and administrators) with distinct interfaces, comprehensive data management across multiple entities (jobs, applications, candidates, evaluations), file uploads, customizable forms, notification systems, and sophisticated state tracking throughout the recruitment pipeline.
+  - Requires dual user roles (candidates and administrators) with distinct interfaces, comprehensive data management across multiple entities (jobs, applications, candidates, evaluations, categories, talent bank), file uploads, customizable forms, notification systems, role-based permissions, and sophisticated state tracking throughout the recruitment pipeline.
 
 ## Essential Features
 
@@ -75,6 +75,20 @@ A comprehensive institutional recruitment platform that transforms how organizat
 - **Progression**: Users list → Create form → Fill name/email/role → Set permissions → Save → Invite sent → New user logs in → Access restricted per role
 - **Success criteria**: Users created successfully, roles enforce correct permissions, inactive users cannot log in, user list filterable and searchable
 
+### Job Category Management
+- **Functionality**: CRUD system for organizing job offers into categories with activation controls and usage tracking
+- **Purpose**: Enable efficient job classification, improved search/filtering for candidates, and organized job portfolio management
+- **Trigger**: Admin navigates to Categories section and clicks "Nueva Categoría"
+- **Progression**: Category list → Create form → Enter name/description → Set active status → Save → Category available for job assignment → Jobs tagged → Appears in filters
+- **Success criteria**: Categories save correctly, job count updates dynamically, active/inactive toggle works, categories display in job creation forms, deletion blocked if jobs assigned
+
+### Talent Bank System
+- **Functionality**: Repository of promising candidates not selected for current positions but valuable for future opportunities, with notes, skill matching, and job suggestion capabilities
+- **Purpose**: Maintain relationships with quality candidates, reduce future recruitment costs, and leverage existing candidate pool for new openings
+- **Trigger**: Admin views candidate profile and clicks "Agregar al Banco de Talento" or system suggests based on criteria
+- **Progression**: Candidate review → Add to talent bank → Tag with skills → Add internal notes → New job posted → System/admin suggests match → Notification sent → Candidate applies
+- **Success criteria**: Candidates add without duplication, notes persist and editable, skill matching suggests relevant jobs, suggested jobs track engagement, talent bank searchable by multiple criteria
+
 ### Dashboard Analytics
 - **Functionality**: Visual metrics displaying active jobs, total applications, pending interviews, hires, recent activity, and alerts for expiring jobs
 - **Purpose**: Provide at-a-glance insights into recruitment health and highlight items requiring immediate attention
@@ -101,21 +115,21 @@ The design should evoke professional confidence with approachable warmth—think
 
 ## Color Selection
 
-**Analogous** (adjacent colors on the color wheel)
-Using a harmonious blue-to-teal progression that communicates trust, professionalism, and forward-thinking innovation with enough variation to establish clear visual hierarchy while maintaining cohesive brand identity.
+**Institutional Brand Colors**
+Following Coosajer's official institutional color palette to create a professional and recognizable recruitment platform that aligns with organizational identity.
 
-- **Primary Color**: Deep Corporate Blue `oklch(0.48 0.14 250)` - Establishes institutional credibility and professional authority, used for primary CTAs, navigation highlights, and key brand touchpoints
+- **Primary Color**: Deep Corporate Blue `oklch(0.35 0.12 250)` - Represents trust, stability and professionalism. Used for primary CTAs, navigation highlights, and key brand touchpoints to establish institutional credibility.
 - **Secondary Colors**: 
-  - Soft Blue `oklch(0.92 0.03 250)` - Background tints and card surfaces for subtle depth without overwhelming
-  - Teal Accent `oklch(0.58 0.12 200)` - Secondary actions and progressive states to provide visual variety within the blue family
-- **Accent Color**: Vibrant Teal `oklch(0.65 0.15 195)` - Dynamic CTAs, success states, and interactive element highlights to inject energy
+  - Soft Blue Tint `oklch(0.94 0.02 250)` - Background surfaces and card elements for subtle depth without overwhelming
+  - Light Blue `oklch(0.96 0.005 250)` - Muted backgrounds and hover states
+- **Accent Color**: Vibrant Green `oklch(0.58 0.12 145)` - Secondary actions, success states, and progressive indicators to inject energy and positivity. Represents growth and opportunity.
 - **Foreground/Background Pairings**:
-  - Background `oklch(1 0 0)`: Dark Text `oklch(0.25 0.01 250)` - Ratio 14.2:1 ✓
-  - Card `oklch(0.98 0.005 250)`: Dark Text `oklch(0.25 0.01 250)` - Ratio 13.1:1 ✓
-  - Primary `oklch(0.48 0.14 250)`: White Text `oklch(1 0 0)` - Ratio 8.2:1 ✓
-  - Secondary `oklch(0.92 0.03 250)`: Dark Text `oklch(0.25 0.01 250)` - Ratio 11.8:1 ✓
-  - Accent `oklch(0.65 0.15 195)`: White Text `oklch(1 0 0)` - Ratio 5.1:1 ✓
-  - Muted `oklch(0.93 0.01 250)`: Muted Text `oklch(0.5 0.02 250)` - Ratio 6.5:1 ✓
+  - Background `oklch(0.987 0.002 250)`: Dark Text `oklch(0.25 0.02 250)` - Ratio 14.8:1 ✓
+  - Card `oklch(1 0 0)`: Dark Text `oklch(0.25 0.02 250)` - Ratio 15.2:1 ✓
+  - Primary `oklch(0.35 0.12 250)`: White Text `oklch(1 0 0)` - Ratio 10.1:1 ✓
+  - Secondary `oklch(0.94 0.02 250)`: Dark Text `oklch(0.25 0.02 250)` - Ratio 12.3:1 ✓
+  - Accent `oklch(0.58 0.12 145)`: White Text `oklch(1 0 0)` - Ratio 5.8:1 ✓
+  - Muted `oklch(0.96 0.005 250)`: Muted Text `oklch(0.52 0.02 250)` - Ratio 7.2:1 ✓
 
 ## Font Selection
 

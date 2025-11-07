@@ -41,6 +41,7 @@ export interface CustomQuestion {
 export interface JobOffer {
   id: string
   title: string
+  categoryId?: string
   description: string
   requirements: string
   location: string
@@ -171,4 +172,57 @@ export interface DashboardMetrics {
   candidatesHired: number
   applicationsByStatus: Record<CandidateStatus, number>
   recentApplications: number
+}
+
+export interface JobCategory {
+  id: string
+  name: string
+  description?: string
+  isActive: boolean
+  createdAt: string
+  jobCount?: number
+}
+
+export interface TalentBankCandidate extends Candidate {
+  addedToTalentBank: string
+  suggestedJobs?: string[]
+  matchingSkills?: string[]
+  notes?: string
+}
+
+export type PermissionModule = 
+  | 'dashboard'
+  | 'jobs'
+  | 'applications'
+  | 'evaluations'
+  | 'candidates'
+  | 'notifications'
+  | 'users'
+  | 'categories'
+  | 'talent-bank'
+
+export interface RolePermissions {
+  [key: string]: PermissionModule[]
+}
+
+export interface AdminUserWithPermissions extends AdminUser {
+  permissions?: PermissionModule[]
+}
+
+export interface NotificationTemplate {
+  id: string
+  name: string
+  subject: string
+  message: string
+  category: 'status-change' | 'interview' | 'general'
+  createdAt: string
+}
+
+export interface InternalNote {
+  id: string
+  applicationId: string
+  authorId: string
+  authorName: string
+  content: string
+  createdAt: string
 }

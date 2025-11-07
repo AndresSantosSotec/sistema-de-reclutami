@@ -9,22 +9,24 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Plus, PencilSimple, Trash, Eye, EyeSlash, Calendar } from '@phosphor-icons/react'
-import type { JobOffer, ContractType, JobVisibility, JobStatus } from '@/lib/types'
+import type { JobOffer, ContractType, JobVisibility, JobStatus, JobCategory } from '@/lib/types'
 import { contractTypeLabels, jobStatusLabels, formatDate, daysUntilDeadline } from '@/lib/constants'
 import { toast } from 'sonner'
 
 interface JobsProps {
   jobs: JobOffer[]
+  categories: JobCategory[]
   onAddJob: (job: Omit<JobOffer, 'id' | 'createdAt' | 'updatedAt'>) => void
   onUpdateJob: (id: string, job: Partial<JobOffer>) => void
   onDeleteJob: (id: string) => void
 }
 
-export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
+export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingJob, setEditingJob] = useState<JobOffer | null>(null)
   const [formData, setFormData] = useState({
     title: '',
+    categoryId: '',
     description: '',
     requirements: '',
     location: '',
@@ -39,6 +41,7 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
       setEditingJob(job)
       setFormData({
         title: job.title,
+        categoryId: job.categoryId || '',
         description: job.description,
         requirements: job.requirements,
         location: job.location,
@@ -51,6 +54,7 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
       setEditingJob(null)
       setFormData({
         title: '',
+        categoryId: '',
         description: '',
         requirements: '',
         location: '',
@@ -125,6 +129,24 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label htmlFor="categoryId">Categoría</Label>
+                  <Select 
+                    value={formData.categoryId} 
+                    onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                  >
+                    <SelectTrigger id="categoryId">
+                      <SelectValue placeholder="Selecciona una categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.filter(c => c.isActive).map(category => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="location">Ubicación</Label>
                   <Input
                     id="location"
@@ -133,6 +155,9 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
                     placeholder="Ej: Madrid, España"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="contractType">Tipo de Contrato</Label>
                   <Select 
@@ -149,6 +174,15 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
                       <SelectItem value="internship">Pasantía</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="deadline">Fecha Límite *</Label>
+                  <Input
+                    id="deadline"
+                    type="date"
+                    value={formData.deadline}
+                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                  />
                 </div>
               </div>
 
@@ -174,16 +208,7 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="deadline">Fecha Límite *</Label>
-                  <Input
-                    id="deadline"
-                    type="date"
-                    value={formData.deadline}
-                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                  />
-                </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="visibility">Visibilidad</Label>
                   <Select 
@@ -242,6 +267,7 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Título</TableHead>
+                <TableHead>Categoría</TableHead>
                 <TableHead>Ubicación</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Estado</TableHead>
@@ -252,7 +278,7 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
             <TableBody>
               {jobs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     No hay ofertas laborales. Crea la primera oferta.
                   </TableCell>
                 </TableRow>
@@ -261,6 +287,7 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
                   const daysLeft = daysUntilDeadline(job.deadline)
                   const isExpiring = daysLeft <= 7 && daysLeft > 0
                   const isExpired = daysLeft < 0
+                  const category = categories.find(c => c.id === job.categoryId)
 
                   return (
                     <TableRow key={job.id}>
@@ -273,6 +300,15 @@ export function Jobs({ jobs, onAddJob, onUpdateJob, onDeleteJob }: JobsProps) {
                           )}
                           {job.title}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {category ? (
+                          <Badge variant="outline" className="text-xs">
+                            {category.name}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Sin categoría</span>
+                        )}
                       </TableCell>
                       <TableCell>{job.location}</TableCell>
                       <TableCell>
