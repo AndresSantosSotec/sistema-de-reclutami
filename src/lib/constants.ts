@@ -1,4 +1,4 @@
-import { CandidateStatus, JobStatus, ContractType, EvaluationType, EvaluationMode } from './types'
+import { CandidateStatus, JobStatus, ContractType, EvaluationType, EvaluationMode, AdminRole } from './types'
 
 export const statusLabels: Record<CandidateStatus, string> = {
   'pending': 'Pendiente',
@@ -34,13 +34,19 @@ export const contractTypeLabels: Record<ContractType, string> = {
 export const evaluationTypeLabels: Record<EvaluationType, string> = {
   'interview': 'Entrevista',
   'technical-test': 'Prueba Técnica',
-  'other': 'Otra'
+  'psychometric': 'Evaluación Psicométrica'
 }
 
 export const evaluationModeLabels: Record<EvaluationMode, string> = {
   'in-person': 'Presencial',
   'virtual': 'Virtual',
   'phone': 'Telefónica'
+}
+
+export const adminRoleLabels: Record<AdminRole, string> = {
+  'administrator': 'Administrador',
+  'recruiter': 'Reclutador',
+  'evaluator': 'Evaluador'
 }
 
 export function formatDate(dateString: string): string {

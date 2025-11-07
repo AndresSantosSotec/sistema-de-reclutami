@@ -5,11 +5,38 @@ export interface User {
   name: string
 }
 
+export type AdminRole = 'administrator' | 'recruiter' | 'evaluator'
+
+export interface AdminUser {
+  id: string
+  name: string
+  email: string
+  role: AdminRole
+  isActive: boolean
+  createdAt: string
+  lastLogin?: string
+}
+
 export type JobStatus = 'active' | 'closed' | 'draft'
 
 export type JobVisibility = 'public' | 'internal'
 
 export type ContractType = 'full-time' | 'part-time' | 'contract' | 'internship'
+
+export type QuestionType = 'text' | 'multiple-choice' | 'numeric' | 'single-choice'
+
+export interface QuestionOption {
+  id: string
+  text: string
+}
+
+export interface CustomQuestion {
+  id: string
+  text: string
+  type: QuestionType
+  options?: QuestionOption[]
+  required: boolean
+}
 
 export interface JobOffer {
   id: string
@@ -21,6 +48,8 @@ export interface JobOffer {
   deadline: string
   visibility: JobVisibility
   status: JobStatus
+  imageUrl?: string
+  customQuestions?: CustomQuestion[]
   createdAt: string
   updatedAt: string
 }
@@ -33,6 +62,26 @@ export type CandidateStatus =
   | 'hired'
   | 'rejected'
 
+export interface WorkExperience {
+  id: string
+  company: string
+  position: string
+  startDate: string
+  endDate?: string
+  current: boolean
+  description: string
+}
+
+export interface Education {
+  id: string
+  institution: string
+  degree: string
+  field: string
+  startDate: string
+  endDate?: string
+  current: boolean
+}
+
 export interface Candidate {
   id: string
   name: string
@@ -40,9 +89,20 @@ export interface Candidate {
   phone: string
   linkedin?: string
   resumeUrl?: string
+  photoUrl?: string
+  workExperience?: WorkExperience[]
+  education?: Education[]
+  skills?: string[]
   appliedAt: string
   status: CandidateStatus
   currentJobId?: string
+  profileCompleteness?: number
+}
+
+export interface QuestionAnswer {
+  questionId: string
+  questionText: string
+  answer: string | number | string[]
 }
 
 export interface Application {
@@ -52,11 +112,18 @@ export interface Application {
   appliedAt: string
   status: CandidateStatus
   notes?: string
+  customAnswers?: QuestionAnswer[]
 }
 
-export type EvaluationType = 'interview' | 'technical-test' | 'other'
+export type EvaluationType = 'interview' | 'technical-test' | 'psychometric'
 
 export type EvaluationMode = 'in-person' | 'virtual' | 'phone'
+
+export interface EvaluationScore {
+  technical?: number
+  attitude?: number
+  experience?: number
+}
 
 export interface Evaluation {
   id: string
@@ -67,7 +134,9 @@ export interface Evaluation {
   scheduledDate?: string
   scheduledTime?: string
   interviewer?: string
+  evaluatorId?: string
   result?: string
+  score?: EvaluationScore
   observations?: string
   createdAt: string
   completedAt?: string
@@ -92,6 +161,7 @@ export interface Notification {
   sentAt: string
   sentBy: string
   type: 'automatic' | 'manual'
+  read?: boolean
 }
 
 export interface DashboardMetrics {

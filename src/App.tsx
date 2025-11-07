@@ -9,6 +9,7 @@ import { Applications } from './components/Applications'
 import { Evaluations } from './components/Evaluations'
 import { Candidates } from './components/Candidates'
 import { Notifications } from './components/Notifications'
+import { AdminUsers } from './components/AdminUsers'
 import type { 
   JobOffer, 
   Application, 
@@ -16,7 +17,8 @@ import type {
   Evaluation, 
   StatusChange, 
   Notification,
-  CandidateStatus 
+  CandidateStatus,
+  AdminUser
 } from './lib/types'
 import { toast } from 'sonner'
 
@@ -31,6 +33,7 @@ function App() {
   const [evaluations, setEvaluations] = useKV<Evaluation[]>('evaluations', [])
   const [statusChanges, setStatusChanges] = useKV<StatusChange[]>('statusChanges', [])
   const [notifications, setNotifications] = useKV<Notification[]>('notifications', [])
+  const [adminUsers, setAdminUsers] = useKV<AdminUser[]>('adminUsers', [])
 
   const handleLogin = useCallback((email: string) => {
     setIsAuthenticated(true)
@@ -90,7 +93,8 @@ function App() {
         message: `El estado de tu postulación ha cambiado a: ${newStatus}`,
         sentAt: new Date().toISOString(),
         sentBy: 'Sistema Automático',
-        type: 'automatic'
+        type: 'automatic',
+        read: false
       }
 
       setNotifications(currentNotifications => [...(currentNotifications || []), autoNotification])
@@ -124,16 +128,38 @@ function App() {
     const newNotification: Notification = {
       ...notification,
       id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      sentAt: new Date().toISOString()
+      sentAt: new Date().toISOString(),
+      read: false
     }
     setNotifications(currentNotifications => [...(currentNotifications || []), newNotification])
   }, [setNotifications])
+
+  const handleAddAdminUser = useCallback((user: Omit<AdminUser, 'id' | 'createdAt'>) => {
+    const newUser: AdminUser = {
+      ...user,
+      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString()
+    }
+    setAdminUsers(currentUsers => [...(currentUsers || []), newUser])
+  }, [setAdminUsers])
+
+  const handleUpdateAdminUser = useCallback((id: string, updates: Partial<AdminUser>) => {
+    setAdminUsers(currentUsers =>
+      (currentUsers || []).map(user =>
+        user.id === id ? { ...user, ...updates } : user
+      )
+    )
+  }, [setAdminUsers])
+
+  const handleDeleteAdminUser = useCallback((id: string) => {
+    setAdminUsers(currentUsers => (currentUsers || []).filter(user => user.id !== id))
+  }, [setAdminUsers])
 
   if (!isAuthenticated) {
     return (
       <>
         <Login onLogin={handleLogin} />
-        <Toaster position="top-right" />
+        <Toaster position="top-right" richColors />
       </>
     )
   }
@@ -193,8 +219,16 @@ function App() {
             onSendNotification={handleSendNotification}
           />
         )}
+        {currentView === 'users' && (
+          <AdminUsers
+            users={adminUsers || []}
+            onAddUser={handleAddAdminUser}
+            onUpdateUser={handleUpdateAdminUser}
+            onDeleteUser={handleDeleteAdminUser}
+          />
+        )}
       </Layout>
-      <Toaster position="top-right" />
+      <Toaster position="top-right" richColors />
     </>
   )
 }
