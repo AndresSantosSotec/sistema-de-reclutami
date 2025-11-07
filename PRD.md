@@ -1,99 +1,77 @@
 # Planning Guide
 
-A comprehensive institutional recruitment platform that transforms how organizations manage their complete hiring lifecycle from job posting to candidate onboarding, with dual interfaces for candidates and administrative staff.
+A comprehensive institutional recruitment platform powered by AI that transforms how organizations manage their complete hiring lifecycle from job posting to candidate onboarding, featuring intelligent candidate evaluation, psychometric test integration, talent banking, and detailed analytics for data-driven hiring decisions.
 
-2. **Effortlessly Efficien
-1. **Professional yet Approachable** - Balance corporate credibility with human warmth through soft gradients, rounded corners, and friendly micro-interactions that make both candidates and HR staff feel confident and comfortable.
-2. **Effortlessly Efficient** - Streamline complex recruitment workflows into intuitive, progressive steps that guide users naturally through applications, evaluations, and hiring decisions without cognitive overload.
-3. **Transparently Informative** - Provide real-time visibility into application status, recruitment metrics, and candidate progress through clear visual hierarchies, status indicators, and contextual notifications.
+**Experience Qualities**:
+1. **Intelligently Efficient** - Leverage AI-powered candidate analysis to identify top talent automatically, reducing manual review time while providing deeper insights into candidate compatibility through skills extraction, match scoring, and intelligent recommendations.
+2. **Transparently Connected** - Provide real-time visibility into every stage of the recruitment process for both administrators and candidates, with automated notifications, progress tracking, and seamless integration with external psychometric testing platforms.
+3. **Strategically Insightful** - Transform recruitment data into actionable intelligence through comprehensive metrics dashboards, exportable databases with advanced filtering, and talent bank management for maintaining relationships with promising candidates.
 
 **Complexity Level**: Complex Application (advanced functionality, accounts)
-  - Requires dual user roles (candidates and administrators) with distinct interfaces, comprehensive data management across multiple entities (jobs, applications, candidates, evaluations), file uploads, customizable forms, notification systems, and sophisticated state tracking throughout the recruitment pipeline.
+  - Requires sophisticated user authentication with registration and password recovery, AI integration for candidate analysis, multi-stage process tracking, external service integration for psychometric testing, comprehensive data export capabilities with advanced filtering, and analytics dashboards for strategic recruitment insights.
 
-- **Progression**: La
+## Essential Features
 
-### Job Offer Management (Admi
-- **Functionality**: Separate login flows for candidates (public portal) and administrators (management panel) with role-based access control
-- **Purpose**: Secure access boundaries between public job seekers and internal HR staff while maintaining unified data architecture
-- **Trigger**: User clicks "Ingresar" or "Panel Admin" from landing page or attempts to access protected routes
-- **Functionality**: Comprehensive candidate profiles with photo upload, resume storage, work experience, educ
-- **Trigger**: Candidate registers account or clicks "Mi Perfil" from navigation
+### Enhanced User Authentication System
+- **Functionality**: Complete authentication system with user registration, login, and password recovery capabilities, replacing simple credential checks with full account management
+- **Purpose**: Enable multiple administrators to manage their own accounts securely while providing self-service password recovery and account creation
+- **Trigger**: User navigates to login page and selects registration tab or forgot password option
+- **Progression**: Landing page → Login/Register/Recover tabs → Enter credentials → Validation → Account created/Password recovered → Dashboard access
+- **Success criteria**: Users can create accounts with validation, recover passwords with email simulation, login with stored credentials, accounts persist across sessions
 
-### Application Status Tracking
-- **Purpose**: Provide transparency to candidates about their application progress and help administrators organize candidate pipeline efficiently
-- **Progression**: Applications list → Select candidate → Change status dropdown → Confirm → Status updates → Notification sent → Visual indicator 
+### AI-Powered Candidate Analysis
+- **Functionality**: Intelligent CV analysis using AI to extract skills, evaluate experience, calculate compatibility scores, identify strengths/concerns, and generate hiring recommendations automatically
+- **Purpose**: Accelerate candidate screening by automatically identifying the most compatible profiles for each position, reducing manual review time while improving hiring quality
+- **Trigger**: Administrator clicks "Analizar con IA" button on candidate profile in the Candidates section
+- **Progression**: Candidate view → Click AI analysis → System extracts CV data → AI processes profile → Displays match score, skills, strengths, concerns, recommendation → Saved for future reference
+- **Success criteria**: AI extracts relevant information from candidate profiles, provides meaningful match scores (0-100), identifies key strengths and concerns, generates actionable recommendations, results persist and display alongside candidate data
 
-- **Functionality**: Schedule and track interviews, technical tests, and assessments with scoring capabilities, evaluator assignments, and structured feedbac
-- **Trigger**: Admin clicks "Programar Evaluación" from candidate details
+### Job Status Management (Available/Occupied)
+- **Functionality**: Clear display and management of job positions showing active, filled, closed, and draft statuses with visual indicators and filtering capabilities
+- **Purpose**: Allow candidates to see which positions are available and which are filled while maintaining a talent bank for future opportunities
+- **Trigger**: Administrator updates job status to "filled" when position is occupied, or candidates view job listings with status badges
+- **Progression**: Job management → Edit job → Change status to filled → Save → Status reflects in listings → Candidates see filled positions → Can still apply for talent bank
+- **Success criteria**: Jobs display accurate status badges, filled positions are clearly marked, candidates can still view filled jobs for future reference, status changes reflect immediately
 
-### Comprehensive Candidate View (
-- **Purpose**: Provide recruiters with holistic candidate view for informed decision-making without navigating multiple screens
-- **Progression**: Applications list → Click candidate → Modal opens → Tabbed interface (Profile/Responses/Evaluations/Notes) → Naviga
+### Advanced Database Export with Filtering
+- **Functionality**: Comprehensive data export system allowing administrators to filter candidates by status, category, date range, skills, experience years, and export to CSV or JSON formats
+- **Purpose**: Enable HR teams to create custom candidate databases for specific needs, share data with stakeholders, and maintain external records
+- **Trigger**: Administrator clicks "Exportar Base de Datos" button in Candidates or Jobs section
+- **Progression**: Click export → Filter modal opens → Select criteria (status/category/dates/skills/experience) → Choose format (CSV/JSON) → Export → File downloads → Success notification
+- **Success criteria**: Filters work correctly and can be combined, exported data includes all relevant candidate information, both CSV and JSON formats work properly, file naming includes date stamp
 
-- **Functionality**: Automated notifications for status changes plus manual messaging capability, with both in-app alerts and email delivery
-- **Trigger**: Automatic on status change or admin manually sends message to candidate
+### Multi-Stage Process Tracking
+- **Functionality**: Comprehensive status pipeline (Pendiente → En Revisión → Entrevista → Prueba Técnica → Contratado/Rechazado) with visual progress indicators, timeline history, and automatic notifications at each stage change
+- **Purpose**: Provide transparency to both administrators and candidates about exactly where they are in the recruitment process
+- **Trigger**: Administrator changes application status or system automatically updates based on actions
+- **Progression**: Application view → Change status dropdown → Select new stage → Confirm → Status updates → Timeline logged → Candidate notified → Progress indicator updates → Both parties see current stage
+- **Success criteria**: Status changes trigger notifications, timeline maintains complete history, visual indicators clearly show current stage, candidates can view their progress, administrators can track all candidates through pipeline
 
-### Admin User Management
-- **Functionality**: Comprehensive candidate profiles with photo upload, resume storage, work experience, education history, skills, and profile completion tracking
-- **Purpose**: Allow candidates to maintain reusable professional profiles that enhance applications and enable recruiters to evaluate qualifications holistically
-- **Trigger**: Candidate registers account or clicks "Mi Perfil" from navigation
-- **Progression**: Profile page → View completion bar → Edit section (photo/experience/education) → Upload/fill data → Save → Visual confirmation → Progress updates
-- **Success criteria**: Profile data persists across sessions, completion percentage calculates accurately, photos display as circular avatars, all sections editable and saveable
+### Psychometric Test Integration
+- **Functionality**: External psychometric test management allowing administrators to mark when tests are sent, track completion status, store external URLs, record results, and automatically notify candidates
+- **Purpose**: Integrate with external psychometric platforms while maintaining test status tracking within the recruitment system
+- **Trigger**: Administrator clicks "Enviar Prueba Psicométrica" from candidate evaluation section
+- **Progression**: Candidate view → Send test button → Modal opens → Enter test name and URL → Send → Test marked as sent → Candidate notified with link → Administrator marks as complete → Results recorded → Both see updated status
+- **Success criteria**: Test sending triggers automatic notification to candidate, external URLs are stored and accessible, status tracking shows pending/sent/in-progress/completed states, test history maintained per candidate, chatbot notifications work automatically
 
-### Application Status Tracking
-- **Functionality**: Multi-stage status pipeline (Pendiente → En Revisión → Entrevista → Prueba Técnica → Contratado/Rechazado) with visual indicators and automatic notifications
-- **Purpose**: Provide transparency to candidates about their application progress and help administrators organize candidate pipeline efficiently
-- **Trigger**: Admin changes application status in management panel or system automatically updates on action
-- **Progression**: Applications list → Select candidate → Change status dropdown → Confirm → Status updates → Notification sent → Visual indicator changes → Timeline logged
-- **Success criteria**: Status changes reflect immediately in both admin and candidate views, notifications trigger on changes, timeline maintains complete history, color coding matches status correctly
+### Comprehensive Metrics & Reports Dashboard
+- **Functionality**: Analytics dashboard displaying key recruitment metrics including total applications, applications by month/status, top requested positions, average time to hire, conversion rates, and traffic sources
+- **Purpose**: Provide data-driven insights for strategic hiring decisions and process optimization
+- **Trigger**: Administrator navigates to Metrics section from main navigation
+- **Progression**: Click Metrics → Dashboard loads → Calculates real-time statistics → Displays visual charts → Shows trends → Allows date filtering → Exports reports
+- **Success criteria**: All metrics calculate correctly from live data, charts are responsive and clear, trends are meaningful, dashboard performs well with large datasets, key indicators highlighted prominently
 
-### Evaluation Management System
-- **Functionality**: Schedule and track interviews, technical tests, and assessments with scoring capabilities, evaluator assignments, and structured feedback
-- **Purpose**: Standardize evaluation processes, maintain organized records of candidate assessments, and facilitate collaborative hiring decisions
-- **Trigger**: Admin clicks "Programar Evaluación" from candidate details
-- **Progression**: Candidate view → Schedule evaluation → Select type/date/evaluator → Add notes → Save → Calendar entry created → Notification sent → Complete evaluation → Enter results → Update candidate status
-- **Success criteria**: Evaluations link to correct candidates, calendar integrations work, evaluators receive notifications, scoring saves properly, evaluation history displays chronologically
+## Edge Case Handling
 
-### Comprehensive Candidate View (Admin)
-- **Functionality**: Unified modal/page displaying complete candidate information including profile photo, CV download, work history, education, custom question responses, evaluation results, and internal notes
-- **Purpose**: Provide recruiters with holistic candidate view for informed decision-making without navigating multiple screens
-- **Trigger**: Admin clicks candidate name/row in Applications or Candidates section
-- **Progression**: Applications list → Click candidate → Modal opens → Tabbed interface (Profile/Responses/Evaluations/Notes) → Navigate sections → Download CV → Add notes → Close or take action
-- **Success criteria**: All candidate data loads correctly, tabs switch smoothly, CV downloads successfully, notes save properly, actions (status change, schedule evaluation) accessible from modal
-
-### Notification System
-- **Functionality**: Automated notifications for status changes plus manual messaging capability, with both in-app alerts and email delivery
-- **Purpose**: Keep candidates informed of their application progress and enable HR to communicate important updates efficiently
-- **Trigger**: Automatic on status change or admin manually sends message to candidate
-- **Progression**: Status change → System generates notification → Saves to database → Displays in candidate notifications → Sends email → Candidate reads → Mark as read
-- **Success criteria**: Notifications deliver reliably, unread count displays accurately, notification history maintained, manual messages send successfully, email integration works (or simulated)
-
-### Admin User Management
-- **Functionality**: CRUD for internal users with role assignment (Admin, Recruiter, Evaluator) and permission controls defining access levels
-- **Large CV Files**: Enforce file size limits (5MB), validate file types (PDF, DOC, DOCX), provide clear feedback on rejection w
-- **Trigger**: Admin navigates to Users section and clicks "Agregar Usuario"
-## Design Direction
-- **Success criteria**: Users created successfully, roles enforce correct permissions, inactive users cannot log in, user list filterable and searchable
-
-### Dashboard Analytics
-**Institutional Brand Colors**
-- **Purpose**: Provide at-a-glance insights into recruitment health and highlight items requiring immediate attention
-- **Primary Color**: Deep Corporate Blue `oklch(0.35 0
-- **Progression**: Login → Dashboard loads → Metrics calculate → Charts render → Alerts display → Admin reviews → Navigates to detailed sections
-- **Success criteria**: Metrics calculate accurately from live data, charts responsive and clear, alerts actionable, dashboard loads quickly
-
-  - Background `oklch
-
-  - Secondary `oklch(0.94 0.02 250)`: Dark Text `oklch(0.25 0.02 250)` - Ratio 12.3:1 ✓
-- **Duplicate Applications**: Detect when candidate attempts to apply twice to same job, show friendly message "Ya has postulado a esta oferta" and redirect to application status
-- **Incomplete Profiles**: Allow candidates to start applications with partial profiles but incentivize completion with progress bar and "Completa tu perfil para destacar" prompts
-- **Missing CV Files**: Validate CV upload before application submission, show clear error if missing, provide drag-and-drop and file browser options
-- **Network Failures on Upload**: Implement retry logic for file uploads, show progress indicators, maintain form data if upload fails, display clear error messages
-- **Concurrent Status Updates**: Handle race conditions when multiple admins update same application simultaneously with optimistic updates and conflict resolution
-  - H1 (Page Titles): Nunito Sans SemiBold/32px/tight tracking/-0.02em - Dashboard, main section headers
-- **Deleted Jobs with Active Applications**: Maintain application records even when job deleted, show "Oferta eliminada" in candidate view, preserve data integrity
-  - Body (Primary Content): Nunito Sans Regular/16px/relaxed leading/1.6 - Descriptions, form inputs, table content
-- **Browser Refresh Mid-Form**: Persist form data in temporary storage, offer "Recuperar datos" option on return, auto-save drafts for applications and profiles
+- **AI Analysis Failures**: If AI service is unavailable or returns invalid data, show user-friendly error message and allow retry, fallback to manual review workflow
+- **Large Data Exports**: Implement progress indicators for exports with many candidates, warn users before exporting datasets over 1000 records
+- **Concurrent Status Updates**: Handle race conditions when multiple admins update same candidate simultaneously with optimistic updates and conflict resolution
+- **External Psychometric Links**: Validate URLs before saving, handle broken/expired links gracefully, provide test link preview
+- **Incomplete Candidate Profiles**: AI analysis works with partial data, highlights missing information that would improve analysis quality
+- **Multiple Test Assignments**: Allow multiple psychometric tests per candidate, track each separately with individual status and results
+- **Export Filter Combinations**: Handle complex filter combinations logically (AND logic), show preview count before export
+- **Session Management**: Implement automatic session persistence, warn users before timeout, preserve unsaved work
+- **Password Recovery in Demo**: Simulate email sending with toast notification showing recovery information for demo purposes
 
 ## Design Direction
 

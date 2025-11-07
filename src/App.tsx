@@ -60,7 +60,7 @@ function App() {
     }))
   }, [categories, jobs])
 
-  const handleLogin = useCallback((email: string) => {
+  const handleLogin = useCallback((email: string, userId: string) => {
     setIsAuthenticated(true)
     setCurrentUser(email)
   }, [])
@@ -263,7 +263,7 @@ function App() {
       ).join('; ') || 'No especificada'}
     `
 
-    const prompt = spark.llmPrompt`
+    const promptText = `
       Analiza el siguiente perfil de candidato y proporciona una evaluación detallada:
       
       ${cvText}
@@ -288,7 +288,7 @@ function App() {
     `
 
     try {
-      const response = await spark.llm(prompt, 'gpt-4o', true)
+      const response = await window.spark.llm(promptText, 'gpt-4o', true)
       const analysis = JSON.parse(response)
 
       const aiAnalysis: AIAnalysis = {
