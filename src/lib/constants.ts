@@ -21,7 +21,8 @@ export const statusColors: Record<CandidateStatus, string> = {
 export const jobStatusLabels: Record<JobStatus, string> = {
   'active': 'Activa',
   'closed': 'Cerrada',
-  'draft': 'Borrador'
+  'draft': 'Borrador',
+  'filled': 'Ocupada'
 }
 
 export const contractTypeLabels: Record<ContractType, string> = {

@@ -236,6 +236,7 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
                     <SelectContent>
                       <SelectItem value="active">Activa</SelectItem>
                       <SelectItem value="draft">Borrador</SelectItem>
+                      <SelectItem value="filled">Ocupada</SelectItem>
                       <SelectItem value="closed">Cerrada</SelectItem>
                     </SelectContent>
                   </Select>

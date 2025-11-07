@@ -5,9 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
-import { User, Envelope, Phone, LinkedinLogo, MagnifyingGlass, Calendar, ClipboardText, Star } from '@phosphor-icons/react'
-import type { Candidate, Application, Evaluation, StatusChange, JobOffer } from '@/lib/types'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { User, Envelope, Phone, LinkedinLogo, MagnifyingGlass, Calendar, ClipboardText, Star, DownloadSimple } from '@phosphor-icons/react'
+import type { Candidate, Application, Evaluation, StatusChange, JobOffer, AIAnalysis, PsychometricTest, JobCategory } from '@/lib/types'
 import { statusLabels, statusColors, formatDate, formatDateTime, evaluationTypeLabels } from '@/lib/constants'
+import { AIAnalysisComponent } from './AIAnalysis'
+import { PsychometricTests } from './PsychometricTests'
+import { ExportData } from './ExportData'
 
 interface CandidatesProps {
   candidates: Candidate[]
@@ -15,10 +19,29 @@ interface CandidatesProps {
   evaluations: Evaluation[]
   statusChanges: StatusChange[]
   jobs: JobOffer[]
+  categories: JobCategory[]
+  aiAnalyses: AIAnalysis[]
+  psychometricTests: PsychometricTest[]
   onAddToTalentBank?: (candidateId: string) => void
+  onAnalyzeCandidate: (candidateId: string, applicationId: string) => Promise<void>
+  onSendPsychometricTest: (test: Omit<PsychometricTest, 'id' | 'sentAt'>) => void
+  onUpdatePsychometricTest: (testId: string, updates: Partial<PsychometricTest>) => void
 }
 
-export function Candidates({ candidates, applications, evaluations, statusChanges, jobs, onAddToTalentBank }: CandidatesProps) {
+export function Candidates({ 
+  candidates, 
+  applications, 
+  evaluations, 
+  statusChanges, 
+  jobs, 
+  categories,
+  aiAnalyses,
+  psychometricTests,
+  onAddToTalentBank,
+  onAnalyzeCandidate,
+  onSendPsychometricTest,
+  onUpdatePsychometricTest
+}: CandidatesProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
 
@@ -62,13 +85,21 @@ export function Candidates({ candidates, applications, evaluations, statusChange
                 {filteredCandidates.length} de {candidates.length} candidato{candidates.length !== 1 ? 's' : ''}
               </CardDescription>
             </div>
-            <div className="relative">
-              <MagnifyingGlass size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar candidatos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full sm:w-64"
+            <div className="flex gap-3">
+              <div className="relative">
+                <MagnifyingGlass size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar candidatos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full sm:w-64"
+                />
+              </div>
+              <ExportData
+                candidates={candidates}
+                applications={applications}
+                jobs={jobs}
+                categories={categories}
               />
             </div>
           </div>
@@ -120,7 +151,7 @@ export function Candidates({ candidates, applications, evaluations, statusChange
       </Card>
 
       <Sheet open={!!selectedCandidate} onOpenChange={(open) => !open && setSelectedCandidate(null)}>
-        <SheetContent className="sm:max-w-2xl overflow-y-auto">
+        <SheetContent className="sm:max-w-3xl overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Perfil del Candidato</SheetTitle>
             <SheetDescription>
@@ -163,130 +194,144 @@ export function Candidates({ candidates, applications, evaluations, statusChange
 
               <Separator />
 
-              <div className="space-y-4">
-                <h4 className="font-semibold flex items-center gap-2">
-                  <ClipboardText size={18} />
-                  Postulaciones ({candidateHistory.applications.length})
-                </h4>
-                {candidateHistory.applications.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No hay postulaciones registradas</p>
-                ) : (
-                  <div className="space-y-3">
-                    {candidateHistory.applications.map(app => {
-                      const job = jobs.find(j => j.id === app.jobId)
-                      return (
-                        <Card key={app.id}>
-                          <CardContent className="pt-6">
-                            <div className="flex items-start justify-between">
-                              <div className="space-y-2 flex-1">
-                                <p className="font-medium">{job?.title || 'N/A'}</p>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Calendar size={14} />
-                                  {formatDate(app.appliedAt)}
+              <Tabs defaultValue="applications" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="applications">Postulaciones</TabsTrigger>
+                  <TabsTrigger value="evaluations">Evaluaciones</TabsTrigger>
+                  <TabsTrigger value="ai-analysis">IA</TabsTrigger>
+                  <TabsTrigger value="psychometric">Psicométricas</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="applications" className="space-y-4 mt-6">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <ClipboardText size={18} />
+                    Postulaciones ({candidateHistory.applications.length})
+                  </h4>
+                  {candidateHistory.applications.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No hay postulaciones registradas</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {candidateHistory.applications.map(app => {
+                        const job = jobs.find(j => j.id === app.jobId)
+                        return (
+                          <Card key={app.id}>
+                            <CardContent className="pt-6">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-2 flex-1">
+                                  <p className="font-medium">{job?.title || 'N/A'}</p>
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Calendar size={14} />
+                                    {formatDate(app.appliedAt)}
+                                  </div>
+                                  <Badge className={statusColors[app.status]} variant="outline">
+                                    {statusLabels[app.status]}
+                                  </Badge>
                                 </div>
-                                <Badge className={statusColors[app.status]} variant="outline">
-                                  {statusLabels[app.status]}
-                                </Badge>
                               </div>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="evaluations" className="space-y-4 mt-6">
+                  <h4 className="font-semibold">Evaluaciones ({candidateHistory.evaluations.length})</h4>
+                  {candidateHistory.evaluations.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No hay evaluaciones registradas</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {candidateHistory.evaluations.map(evaluation => (
+                        <Card key={evaluation.id}>
+                          <CardContent className="pt-6">
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Badge variant="outline">
+                                  {evaluationTypeLabels[evaluation.type]}
+                                </Badge>
+                                {evaluation.completedAt ? (
+                                  <Badge className="bg-green-100 text-green-800 border-green-200" variant="outline">
+                                    Completada
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200" variant="outline">
+                                    Pendiente
+                                  </Badge>
+                                )}
+                              </div>
+                              {evaluation.scheduledDate && (
+                                <p className="text-sm text-muted-foreground">
+                                  {evaluation.scheduledDate} {evaluation.scheduledTime && `- ${evaluation.scheduledTime}`}
+                                </p>
+                              )}
+                              {evaluation.interviewer && (
+                                <p className="text-sm">
+                                  <span className="text-muted-foreground">Responsable:</span> {evaluation.interviewer}
+                                </p>
+                              )}
+                              {evaluation.result && (
+                                <div className="pt-2 border-t">
+                                  <p className="text-sm font-medium">Resultado:</p>
+                                  <p className="text-sm text-muted-foreground mt-1">{evaluation.result}</p>
+                                </div>
+                              )}
+                              {evaluation.observations && (
+                                <div className="pt-2 border-t">
+                                  <p className="text-sm font-medium">Observaciones:</p>
+                                  <p className="text-sm text-muted-foreground mt-1">{evaluation.observations}</p>
+                                </div>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h4 className="font-semibold">Evaluaciones ({candidateHistory.evaluations.length})</h4>
-                {candidateHistory.evaluations.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No hay evaluaciones registradas</p>
-                ) : (
-                  <div className="space-y-3">
-                    {candidateHistory.evaluations.map(evaluation => (
-                      <Card key={evaluation.id}>
-                        <CardContent className="pt-6">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline">
-                                {evaluationTypeLabels[evaluation.type]}
-                              </Badge>
-                              {evaluation.completedAt ? (
-                                <Badge className="bg-green-100 text-green-800 border-green-200" variant="outline">
-                                  Completada
-                                </Badge>
-                              ) : (
-                                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200" variant="outline">
-                                  Pendiente
-                                </Badge>
-                              )}
-                            </div>
-                            {evaluation.scheduledDate && (
-                              <p className="text-sm text-muted-foreground">
-                                {evaluation.scheduledDate} {evaluation.scheduledTime && `- ${evaluation.scheduledTime}`}
-                              </p>
-                            )}
-                            {evaluation.interviewer && (
-                              <p className="text-sm">
-                                <span className="text-muted-foreground">Responsable:</span> {evaluation.interviewer}
-                              </p>
-                            )}
-                            {evaluation.result && (
-                              <div className="pt-2 border-t">
-                                <p className="text-sm font-medium">Resultado:</p>
-                                <p className="text-sm text-muted-foreground mt-1">{evaluation.result}</p>
-                              </div>
-                            )}
-                            {evaluation.observations && (
-                              <div className="pt-2 border-t">
-                                <p className="text-sm font-medium">Observaciones:</p>
-                                <p className="text-sm text-muted-foreground mt-1">{evaluation.observations}</p>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h4 className="font-semibold">Historial de Estados ({candidateHistory.statusChanges.length})</h4>
-                {candidateHistory.statusChanges.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No hay cambios de estado registrados</p>
-                ) : (
-                  <div className="space-y-3">
-                    {candidateHistory.statusChanges
-                      .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())
-                      .map(change => (
-                        <div key={change.id} className="flex gap-4 border-l-2 border-primary pl-4 py-2">
-                          <div className="flex-1">
-                            <p className="text-sm">
-                              <Badge className={statusColors[change.fromStatus]} variant="outline">
-                                {statusLabels[change.fromStatus]}
-                              </Badge>
-                              {' → '}
-                              <Badge className={statusColors[change.toStatus]} variant="outline">
-                                {statusLabels[change.toStatus]}
-                              </Badge>
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {formatDateTime(change.changedAt)} por {change.changedBy}
-                            </p>
-                            {change.notes && (
-                              <p className="text-sm text-muted-foreground mt-2">{change.notes}</p>
-                            )}
-                          </div>
-                        </div>
                       ))}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="ai-analysis" className="mt-6">
+                  {candidateHistory.applications.length > 0 ? (
+                    <AIAnalysisComponent
+                      candidate={selectedCandidate}
+                      application={candidateHistory.applications[0]}
+                      analysis={aiAnalyses.find(
+                        a => a.candidateId === selectedCandidate.id && 
+                             a.applicationId === candidateHistory.applications[0].id
+                      )}
+                      onAnalyze={onAnalyzeCandidate}
+                    />
+                  ) : (
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-sm text-muted-foreground text-center py-8">
+                          El candidato debe tener al menos una postulación para realizar análisis con IA
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="psychometric" className="mt-6">
+                  {candidateHistory.applications.length > 0 ? (
+                    <PsychometricTests
+                      tests={psychometricTests}
+                      candidate={selectedCandidate}
+                      application={candidateHistory.applications[0]}
+                      onSendTest={onSendPsychometricTest}
+                      onUpdateTest={onUpdatePsychometricTest}
+                    />
+                  ) : (
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-sm text-muted-foreground text-center py-8">
+                          El candidato debe tener al menos una postulación para enviar pruebas psicométricas
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
+              </Tabs>
 
               {onAddToTalentBank && (
                 <>

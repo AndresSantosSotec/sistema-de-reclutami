@@ -12,6 +12,7 @@ import { Notifications } from './components/Notifications'
 import { AdminUsers } from './components/AdminUsers'
 import { Categories } from './components/Categories'
 import { TalentBank } from './components/TalentBank'
+import { Metrics } from './components/Metrics'
 import type { 
   JobOffer, 
   Application, 
@@ -22,7 +23,9 @@ import type {
   CandidateStatus,
   AdminUser,
   JobCategory,
-  TalentBankCandidate
+  TalentBankCandidate,
+  AIAnalysis,
+  PsychometricTest
 } from './lib/types'
 import { toast } from 'sonner'
 
@@ -47,6 +50,8 @@ function App() {
     { id: 'cat-6', name: 'Administración', description: 'Gestión administrativa y operativa', isActive: true, createdAt: new Date().toISOString() },
   ])
   const [talentBank, setTalentBank] = useKV<TalentBankCandidate[]>('talentBank', [])
+  const [aiAnalyses, setAiAnalyses] = useKV<AIAnalysis[]>('aiAnalyses', [])
+  const [psychometricTests, setPsychometricTests] = useKV<PsychometricTest[]>('psychometricTests', [])
 
   const categoriesWithJobCount = useMemo(() => {
     return (categories || []).map(category => ({
@@ -242,6 +247,122 @@ function App() {
     toast.success('Notas actualizadas')
   }, [setTalentBank])
 
+  const handleAnalyzeCandidate = useCallback(async (candidateId: string, applicationId: string) => {
+    const candidate = (candidates || []).find(c => c.id === candidateId)
+    if (!candidate) return
+
+    const cvText = `
+      Nombre: ${candidate.name}
+      Email: ${candidate.email}
+      Habilidades: ${candidate.skills?.join(', ') || 'No especificadas'}
+      Experiencia Laboral: ${candidate.workExperience?.map(exp => 
+        `${exp.position} en ${exp.company} (${exp.startDate} - ${exp.current ? 'Presente' : exp.endDate})`
+      ).join('; ') || 'No especificada'}
+      Educación: ${candidate.education?.map(edu => 
+        `${edu.degree} en ${edu.field} - ${edu.institution}`
+      ).join('; ') || 'No especificada'}
+    `
+
+    const prompt = spark.llmPrompt`
+      Analiza el siguiente perfil de candidato y proporciona una evaluación detallada:
+      
+      ${cvText}
+      
+      Por favor proporciona:
+      1. Lista de habilidades técnicas identificadas (máximo 8)
+      2. Experiencias laborales más relevantes (máximo 5 puntos)
+      3. Puntuación de compatibilidad del 0-100
+      4. Fortalezas principales (máximo 5)
+      5. Áreas de atención o debilidades (máximo 5)
+      6. Recomendación final en una oración
+
+      Responde ÚNICAMENTE con un objeto JSON válido con esta estructura exacta:
+      {
+        "skills": ["habilidad1", "habilidad2"],
+        "experience": ["experiencia1", "experiencia2"],
+        "matchScore": 85,
+        "strengths": ["fortaleza1", "fortaleza2"],
+        "concerns": ["concern1", "concern2"],
+        "recommendation": "texto de recomendación"
+      }
+    `
+
+    try {
+      const response = await spark.llm(prompt, 'gpt-4o', true)
+      const analysis = JSON.parse(response)
+
+      const aiAnalysis: AIAnalysis = {
+        id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        candidateId,
+        applicationId,
+        cvText,
+        skills: analysis.skills || [],
+        experience: analysis.experience || [],
+        matchScore: analysis.matchScore || 0,
+        strengths: analysis.strengths || [],
+        concerns: analysis.concerns || [],
+        recommendation: analysis.recommendation || 'No se pudo generar recomendación',
+        analyzedAt: new Date().toISOString()
+      }
+
+      setAiAnalyses(current => {
+        const filtered = (current || []).filter(
+          a => !(a.candidateId === candidateId && a.applicationId === applicationId)
+        )
+        return [...filtered, aiAnalysis]
+      })
+    } catch (error) {
+      console.error('Error analyzing candidate:', error)
+      throw error
+    }
+  }, [candidates, setAiAnalyses])
+
+  const handleSendPsychometricTest = useCallback((test: Omit<PsychometricTest, 'id' | 'sentAt'>) => {
+    const newTest: PsychometricTest = {
+      ...test,
+      id: `psy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      sentAt: new Date().toISOString()
+    }
+    setPsychometricTests(current => [...(current || []), newTest])
+
+    const notification: Notification = {
+      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      candidateId: test.candidateId,
+      subject: 'Prueba Psicométrica Enviada',
+      message: `Se te ha enviado una prueba psicométrica: ${test.testName}${test.externalUrl ? `. Accede aquí: ${test.externalUrl}` : ''}`,
+      sentAt: new Date().toISOString(),
+      sentBy: currentUser,
+      type: 'manual',
+      read: false
+    }
+    setNotifications(current => [...(current || []), notification])
+  }, [setPsychometricTests, setNotifications, currentUser])
+
+  const handleUpdatePsychometricTest = useCallback((testId: string, updates: Partial<PsychometricTest>) => {
+    setPsychometricTests(current =>
+      (current || []).map(test =>
+        test.id === testId ? { ...test, ...updates } : test
+      )
+    )
+
+    if (updates.status === 'completed') {
+      const test = (psychometricTests || []).find(t => t.id === testId)
+      if (test) {
+        const notification: Notification = {
+          id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          candidateId: test.candidateId,
+          subject: 'Prueba Psicométrica Completada',
+          message: `Tu prueba psicométrica "${test.testName}" ha sido registrada como completada.`,
+          sentAt: new Date().toISOString(),
+          sentBy: 'Sistema Automático',
+          type: 'automatic',
+          read: false
+        }
+        setNotifications(current => [...(current || []), notification])
+      }
+    }
+  }, [setPsychometricTests, psychometricTests, setNotifications])
+
   if (!isAuthenticated) {
     return (
       <>
@@ -298,7 +419,13 @@ function App() {
             evaluations={evaluations || []}
             statusChanges={statusChanges || []}
             jobs={jobs || []}
+            categories={categoriesWithJobCount}
+            aiAnalyses={aiAnalyses || []}
+            psychometricTests={psychometricTests || []}
             onAddToTalentBank={handleAddToTalentBank}
+            onAnalyzeCandidate={handleAnalyzeCandidate}
+            onSendPsychometricTest={handleSendPsychometricTest}
+            onUpdatePsychometricTest={handleUpdatePsychometricTest}
           />
         )}
         {currentView === 'talent-bank' && (
@@ -330,6 +457,12 @@ function App() {
             onAddUser={handleAddAdminUser}
             onUpdateUser={handleUpdateAdminUser}
             onDeleteUser={handleDeleteAdminUser}
+          />
+        )}
+        {currentView === 'metrics' && (
+          <Metrics
+            applications={applications || []}
+            jobs={jobs || []}
           />
         )}
       </Layout>

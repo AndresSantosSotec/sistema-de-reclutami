@@ -17,7 +17,7 @@ export interface AdminUser {
   lastLogin?: string
 }
 
-export type JobStatus = 'active' | 'closed' | 'draft'
+export type JobStatus = 'active' | 'closed' | 'draft' | 'filled'
 
 export type JobVisibility = 'public' | 'internal'
 
@@ -225,4 +225,54 @@ export interface InternalNote {
   authorName: string
   content: string
   createdAt: string
+}
+
+export interface AIAnalysis {
+  id: string
+  candidateId: string
+  applicationId: string
+  cvText: string
+  skills: string[]
+  experience: string[]
+  matchScore: number
+  strengths: string[]
+  concerns: string[]
+  recommendation: string
+  analyzedAt: string
+}
+
+export interface PsychometricTest {
+  id: string
+  applicationId: string
+  candidateId: string
+  testName: string
+  externalUrl?: string
+  sentAt: string
+  completedAt?: string
+  results?: string
+  score?: number
+  status: 'pending' | 'sent' | 'in-progress' | 'completed'
+}
+
+export interface RecruitmentMetrics {
+  totalApplications: number
+  applicationsByMonth: { month: string; count: number }[]
+  applicationsByStatus: { status: string; count: number }[]
+  topJobs: { jobTitle: string; applicationCount: number }[]
+  averageTimeToHire: number
+  conversionRates: {
+    pendingToInterview: number
+    interviewToHired: number
+  }
+  trafficSources?: { source: string; count: number }[]
+}
+
+export interface ExportFilters {
+  status?: CandidateStatus[]
+  jobIds?: string[]
+  dateFrom?: string
+  dateTo?: string
+  skills?: string[]
+  minExperience?: number
+  categories?: string[]
 }
