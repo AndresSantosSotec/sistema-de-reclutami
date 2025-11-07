@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { House, Briefcase, UserList, ClipboardText, Bell, SignOut, User } from '@phosphor-icons/react'
+import { House, Briefcase, UserList, ClipboardText, Bell, SignOut, User, Users, Tag, Star, ChartBar } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
 interface LayoutProps {
@@ -17,7 +17,11 @@ const navItems = [
   { id: 'applications', label: 'Postulaciones', icon: UserList },
   { id: 'evaluations', label: 'Evaluaciones', icon: ClipboardText },
   { id: 'candidates', label: 'Candidatos', icon: User },
-  { id: 'notifications', label: 'Notificaciones', icon: Bell }
+  { id: 'talent-bank', label: 'Banco de Talento', icon: Star },
+  { id: 'notifications', label: 'Notificaciones', icon: Bell },
+  { id: 'metrics', label: 'Métricas', icon: ChartBar },
+  { id: 'categories', label: 'Categorías', icon: Tag },
+  { id: 'users', label: 'Usuarios', icon: Users }
 ]
 
 export function Layout({ children, currentView, onNavigate, onLogout }: LayoutProps) {
@@ -26,12 +30,12 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
       <aside className="hidden md:flex md:w-64 md:flex-col bg-card border-r border-border">
         <div className="p-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
               <Briefcase size={20} weight="duotone" className="text-primary-foreground" />
             </div>
             <div>
-              <h2 className="font-semibold text-lg">Panel Admin</h2>
-              <p className="text-xs text-muted-foreground">Reclutamiento</p>
+              <h2 className="font-semibold text-lg">Coosajer Empleos</h2>
+              <p className="text-xs text-muted-foreground">Panel Administrativo</p>
             </div>
           </div>
         </div>
@@ -44,8 +48,8 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
               key={item.id}
               variant={currentView === item.id ? 'secondary' : 'ghost'}
               className={cn(
-                'w-full justify-start gap-3',
-                currentView === item.id && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary'
+                'w-full justify-start gap-3 transition-all duration-200',
+                currentView === item.id && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary shadow-sm'
               )}
               onClick={() => onNavigate(item.id)}
             >
@@ -73,10 +77,10 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
         <header className="md:hidden bg-card border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
                 <Briefcase size={16} weight="duotone" className="text-primary-foreground" />
               </div>
-              <h2 className="font-semibold">Panel Admin</h2>
+              <h2 className="font-semibold">Coosajer Empleos</h2>
             </div>
             <Button variant="ghost" size="sm" onClick={onLogout}>
               <SignOut size={20} />
