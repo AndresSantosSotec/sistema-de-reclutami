@@ -15,6 +15,7 @@ import { SkillsPage } from './components/SkillsPage'
 import { TalentBank } from './components/TalentBank'
 import { Metrics } from './components/Metrics'
 import Gallery from './components/Gallery'
+import UsersPage from './pages/UsersPage'
 import type { 
   JobOffer, 
   Application, 
@@ -443,12 +444,7 @@ function App() {
           <CategoriesPage />
         )}
         {currentView === 'users' && (
-          <AdminUsers
-            users={adminUsers || []}
-            onAddUser={handleAddAdminUser}
-            onUpdateUser={handleUpdateAdminUser}
-            onDeleteUser={handleDeleteAdminUser}
-          />
+          <UsersPage />
         )}
         {currentView === 'metrics' && (
           <Metrics

@@ -135,7 +135,6 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
       const skills = await skillService.getSkills({ solo_activas: true })
       setAllSkills(skills)
     } catch (error) {
-      console.error('Error loading skills:', error)
       toast.error('Error al cargar las habilidades')
     }
   }
@@ -242,14 +241,6 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('📋 FormData antes de enviar:', formData)
-    console.log('📋 categoryId:', formData.categoryId, 'tipo:', typeof formData.categoryId)
-    console.log('📋 Habilidades seleccionadas:', selectedSkills)
-    console.log('📋 Detalles de habilidades:', selectedSkills.map(id => {
-      const skill = allSkills.find(s => s.id === id)
-      return { id, nombre: skill?.nombre, categoria: skill?.categoria }
-    }))
-    
     if (!formData.title || !formData.description || !formData.deadline) {
       toast.error('Por favor completa los campos requeridos')
       return
@@ -331,7 +322,6 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
                   <Select 
                     value={formData.categoryId?.toString()} 
                     onValueChange={(value) => {
-                      console.log('✅ Categoría seleccionada:', value, 'tipo:', typeof value)
                       setFormData({ ...formData, categoryId: value })
                     }}
                   >

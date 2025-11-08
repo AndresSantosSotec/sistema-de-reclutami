@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useGallery } from '../hooks/useGallery';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -50,10 +51,13 @@ export default function Gallery() {
     category_id: 0,
     title: '',
     description: '',
+    media_type: 'image' as 'image' | 'video',
     image: null as File | null,
+    video: null as File | null,
     is_published: true,
   });
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [videoPreview, setVideoPreview] = useState<string>('');
 
   const [categoryForm, setCategoryForm] = useState({
     name: '',
@@ -71,7 +75,15 @@ export default function Gallery() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setUploadForm({ ...uploadForm, image: file });
+      // Validar tamaño máximo 200MB
+      const maxSize = 200 * 1024 * 1024; // 200MB en bytes
+      if (file.size > maxSize) {
+        toast.error('El archivo no debe superar 200MB');
+        return;
+      }
+
+      setUploadForm({ ...uploadForm, image: file, media_type: 'image', video: null });
+      setVideoPreview('');
       
       // Preview
       const reader = new FileReader();
@@ -82,25 +94,60 @@ export default function Gallery() {
     }
   };
 
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validar tamaño máximo 200MB
+      const maxSize = 200 * 1024 * 1024; // 200MB en bytes
+      if (file.size > maxSize) {
+        toast.error('El video no debe superar 200MB');
+        return;
+      }
+
+      setUploadForm({ ...uploadForm, video: file, media_type: 'video', image: null });
+      setImagePreview('');
+      
+      // Preview de video
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVideoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadForm.image || !uploadForm.category_id) {
-      alert('Por favor selecciona una categoría y una imagen');
+    
+    if (!uploadForm.category_id) {
+      toast.error('Por favor selecciona una categoría');
+      return;
+    }
+
+    if (uploadForm.media_type === 'image' && !uploadForm.image) {
+      toast.error('Por favor selecciona una imagen');
+      return;
+    }
+
+    if (uploadForm.media_type === 'video' && !uploadForm.video) {
+      toast.error('Por favor selecciona un video');
       return;
     }
 
     try {
       if (editingPost) {
         await updatePost(editingPost.id, uploadForm);
+        toast.success('Publicación actualizada exitosamente');
       } else {
         await createPost(uploadForm);
+        toast.success('Publicación creada exitosamente');
       }
       
       setShowUploadDialog(false);
       resetUploadForm();
       loadPosts();
-    } catch (err) {
-      console.error('Error al guardar publicación:', err);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al guardar publicación');
     }
   };
 
@@ -108,9 +155,10 @@ export default function Gallery() {
     if (confirm('¿Estás seguro de eliminar esta publicación?')) {
       try {
         await deletePost(id);
+        toast.success('Publicación eliminada correctamente');
         loadPosts();
-      } catch (err) {
-        console.error('Error al eliminar:', err);
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Error al eliminar');
       }
     }
   };
@@ -120,15 +168,17 @@ export default function Gallery() {
     try {
       if (editingCategory) {
         await updateCategory(editingCategory.id, categoryForm);
+        toast.success('Categoría actualizada exitosamente');
       } else {
         await createCategory(categoryForm);
+        toast.success('Categoría creada exitosamente');
       }
       
       setShowCategoryDialog(false);
       resetCategoryForm();
       loadCategories();
-    } catch (err) {
-      console.error('Error al guardar categoría:', err);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al guardar categoría');
     }
   };
 
@@ -136,9 +186,10 @@ export default function Gallery() {
     if (confirm('¿Estás seguro? Esto eliminará la categoría si no tiene publicaciones.')) {
       try {
         await deleteCategory(id);
+        toast.success('Categoría eliminada correctamente');
         loadCategories();
-      } catch (err) {
-        console.error('Error al eliminar categoría:', err);
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Error al eliminar categoría');
       }
     }
   };
@@ -148,10 +199,13 @@ export default function Gallery() {
       category_id: 0,
       title: '',
       description: '',
+      media_type: 'image',
       image: null,
+      video: null,
       is_published: true,
     });
     setImagePreview('');
+    setVideoPreview('');
     setEditingPost(null);
   };
 
@@ -262,10 +316,30 @@ export default function Gallery() {
                   {editingPost ? 'Editar' : 'Subir'} Publicación
                 </DialogTitle>
                 <DialogDescription>
-                  Tamaño recomendado: mínimo 1200x800px, máximo 10MB
+                  Imágenes: máx 200MB (jpeg, png, webp) | Videos: máx 200MB (mp4, mov, avi, wmv, webm)
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleUploadSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="media_type">Tipo de contenido *</Label>
+                  <Select
+                    value={uploadForm.media_type}
+                    onValueChange={(value: 'image' | 'video') => {
+                      setUploadForm({ ...uploadForm, media_type: value, image: null, video: null });
+                      setImagePreview('');
+                      setVideoPreview('');
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="image">📷 Imagen</SelectItem>
+                      <SelectItem value="video">🎥 Video</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div>
                   <Label htmlFor="category">Categoría *</Label>
                   <Select
@@ -306,19 +380,37 @@ export default function Gallery() {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="image">Imagen *</Label>
-                  <Input
-                    id="image"
-                    type="file"
-                    accept="image/jpeg,image/png,image/jpg,image/webp"
-                    onChange={handleImageChange}
-                    required={!editingPost}
-                  />
-                  {imagePreview && (
-                    <img src={imagePreview} alt="Preview" className="mt-2 max-h-48 rounded" />
-                  )}
-                </div>
+                {uploadForm.media_type === 'image' ? (
+                  <div>
+                    <Label htmlFor="image">Imagen *</Label>
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg,image/webp"
+                      onChange={handleImageChange}
+                      required={!editingPost}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Máximo 200MB</p>
+                    {imagePreview && (
+                      <img src={imagePreview} alt="Preview" className="mt-2 max-h-48 rounded" />
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <Label htmlFor="video">Video *</Label>
+                    <Input
+                      id="video"
+                      type="file"
+                      accept="video/mp4,video/mov,video/avi,video/wmv,video/webm"
+                      onChange={handleVideoChange}
+                      required={!editingPost}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Máximo 200MB - Formatos: MP4, MOV, AVI, WMV, WEBM</p>
+                    {videoPreview && (
+                      <video src={videoPreview} controls className="mt-2 max-h-48 rounded w-full" />
+                    )}
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2">
                   <input
@@ -399,12 +491,24 @@ export default function Gallery() {
               {posts.map((post) => (
                 <Card key={post.id} className="overflow-hidden">
                   <div className="relative aspect-video bg-gray-100">
-                    <img
-                      src={`http://localhost:8000${post.thumbnail_url}`}
-                      alt={post.title}
-                      className="w-full h-full object-cover"
-                    />
+                    {post.media_type === 'video' ? (
+                      <video
+                        src={`http://localhost:8000${post.video_url}`}
+                        poster={post.video_thumbnail_url ? `http://localhost:8000${post.video_thumbnail_url}` : undefined}
+                        className="w-full h-full object-cover"
+                        controls
+                      />
+                    ) : (
+                      <img
+                        src={`http://localhost:8000${post.thumbnail_url}`}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                     <div className="absolute top-2 right-2 flex gap-1">
+                      {post.media_type === 'video' && (
+                        <Badge className="bg-blue-500">🎥 Video</Badge>
+                      )}
                       {post.is_published ? (
                         <Badge className="bg-green-500">Publicado</Badge>
                       ) : (
@@ -418,6 +522,9 @@ export default function Gallery() {
                     <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
                       <EyeIcon className="w-3 h-3" />
                       {post.views_count} vistas
+                      {post.media_type === 'video' && post.video_duration && (
+                        <span className="ml-2">• {Math.floor(post.video_duration / 60)}:{(post.video_duration % 60).toString().padStart(2, '0')} min</span>
+                      )}
                     </div>
                     <div className="flex gap-2 mt-3">
                       <Button
@@ -430,7 +537,9 @@ export default function Gallery() {
                             category_id: post.category_id,
                             title: post.title,
                             description: post.description,
+                            media_type: post.media_type || 'image',
                             image: null,
+                            video: null,
                             is_published: post.is_published,
                           });
                           setShowUploadDialog(true);

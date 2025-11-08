@@ -21,10 +21,6 @@ export function Login({ onLogin }: LoginProps) {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('🔐 [Admin Login] Iniciando autenticación de administrador...')
-    console.log('📧 Email:', email)
-    console.log('🔑 Password length:', password.length)
-    
     if (!email || !password) {
       toast.error('Por favor completa todos los campos')
       return
@@ -33,17 +29,11 @@ export function Login({ onLogin }: LoginProps) {
     setIsLoading(true)
     
     try {
-      console.log('🔄 [Admin Login] Enviando petición de login...')
       const response = await adminAuthService.login({
         email: email,
         password: password,
         user_type: 'admin'
       })
-      
-      console.log('✅ [Admin Login] Respuesta recibida:', response)
-      console.log('👤 Usuario:', response.user)
-      console.log('🎫 Token guardado:', !!localStorage.getItem('admin_token'))
-      console.log('🔒 User type:', response.user?.user_type)
       
       if (!response.user) {
         throw new Error('No se recibió información del usuario')
@@ -55,11 +45,7 @@ export function Login({ onLogin }: LoginProps) {
       
       onLogin(email, response.user.id.toString())
       toast.success(`Bienvenido, ${response.user.name}`)
-      console.log('🎉 [Admin Login] Login exitoso')
     } catch (error: any) {
-      console.error('❌ [Admin Login] Error:', error)
-      console.error('📄 Error completo:', error.response?.data)
-      
       const errorMessage = error.message || 'Credenciales inválidas'
       toast.error(errorMessage)
       setIsLoading(false)

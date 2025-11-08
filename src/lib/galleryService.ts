@@ -19,11 +19,15 @@ export interface GalleryPost {
   created_by: number;
   title: string;
   description: string;
+  media_type?: 'image' | 'video';
   image_path: string;
   image_thumbnail?: string;
   image_medium?: string;
   image_width?: number;
   image_height?: number;
+  video_path?: string;
+  video_thumbnail?: string;
+  video_duration?: number;
   file_size?: number;
   views_count: number;
   is_published: boolean;
@@ -33,6 +37,8 @@ export interface GalleryPost {
   image_url?: string;
   thumbnail_url?: string;
   medium_url?: string;
+  video_url?: string;
+  video_thumbnail_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -127,13 +133,15 @@ class GalleryService {
   }
 
   /**
-   * Crear nueva publicación con imagen
+   * Crear nueva publicación con imagen o video
    */
   async createPost(data: {
     category_id: number;
     title: string;
     description: string;
-    image: File;
+    media_type: 'image' | 'video';
+    image?: File | null;
+    video?: File | null;
     is_published?: boolean;
   }): Promise<GalleryPost> {
     try {
@@ -141,7 +149,14 @@ class GalleryService {
       formData.append('category_id', data.category_id.toString());
       formData.append('title', data.title);
       formData.append('description', data.description);
-      formData.append('image', data.image);
+      formData.append('media_type', data.media_type);
+      
+      if (data.media_type === 'image' && data.image) {
+        formData.append('image', data.image);
+      } else if (data.media_type === 'video' && data.video) {
+        formData.append('video', data.video);
+      }
+      
       if (data.is_published !== undefined) {
         formData.append('is_published', data.is_published ? '1' : '0');
       }
@@ -164,7 +179,9 @@ class GalleryService {
     category_id?: number;
     title?: string;
     description?: string;
-    image?: File;
+    media_type?: 'image' | 'video';
+    image?: File | null;
+    video?: File | null;
     is_published?: boolean;
   }): Promise<GalleryPost> {
     try {
@@ -174,7 +191,9 @@ class GalleryService {
       if (data.category_id) formData.append('category_id', data.category_id.toString());
       if (data.title) formData.append('title', data.title);
       if (data.description) formData.append('description', data.description);
+      if (data.media_type) formData.append('media_type', data.media_type);
       if (data.image) formData.append('image', data.image);
+      if (data.video) formData.append('video', data.video);
       if (data.is_published !== undefined) {
         formData.append('is_published', data.is_published ? '1' : '0');
       }

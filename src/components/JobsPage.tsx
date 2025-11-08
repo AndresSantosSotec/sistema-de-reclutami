@@ -68,15 +68,8 @@ export function JobsPage() {
         getCategories()
       ])
 
-      console.log('📊 Total ofertas recibidas del backend:', jobsData.length)
-      console.log('📊 Ofertas:', jobsData)
-
       // Transformar jobs al formato del componente
       const transformedJobs = jobsData.map((job: BackendJobOffer) => {
-        console.log('🔍 Job del backend:', job.id, job.titulo)
-        console.log('  📸 Imágenes:', job.imagenes)
-        console.log('  💡 Habilidades:', job.habilidades)
-        
         return {
           id: job.id,
           title: job.titulo,
@@ -114,7 +107,6 @@ export function JobsPage() {
       setJobs(transformedJobs)
       setCategories(transformedCategories)
     } catch (error) {
-      console.error('Error al cargar datos:', error)
       toast.error('Error al cargar las ofertas')
     } finally {
       setLoading(false)
@@ -123,13 +115,9 @@ export function JobsPage() {
 
   const handleAddJob = async (jobData: Omit<JobOffer, 'id' | 'createdAt' | 'updatedAt'>, image?: File, skillIds?: string[]) => {
     try {
-      console.log('🔍 Datos recibidos en handleAddJob:', jobData)
-      console.log('🔍 categoryId:', jobData.categoryId, 'tipo:', typeof jobData.categoryId)
-      console.log('🎯 Skills IDs recibidos:', skillIds)
-      
       const dataToSend = {
         titulo: jobData.title,
-        empresa: 'Coosanjer', // Valor por defecto
+        empresa: 'Coosanjer',
         descripcion: jobData.description,
         requisitos: jobData.requirements || undefined,
         ubicacion: jobData.location || undefined,
@@ -143,15 +131,8 @@ export function JobsPage() {
         habilidades_ids: skillIds || [],
       }
       
-      console.log('📤 Datos a enviar al backend:', dataToSend)
-      console.log('📤 Habilidades a guardar:', skillIds)
-      console.log('📤 JSON.stringify:', JSON.stringify(dataToSend, null, 2))
-      
       const response = await createJobOffer(dataToSend)
-      console.log('✅ Respuesta del backend:', response)
-      
       const offerId = response.data?.id
-      console.log('🆔 ID de oferta creada:', offerId)
       
       // Si se proporcionó una imagen, subirla automáticamente
       if (image && offerId) {
@@ -159,7 +140,6 @@ export function JobsPage() {
           await uploadJobImage(offerId, image)
           toast.success('Oferta creada e imagen subida exitosamente')
         } catch (error) {
-          console.error('Error al subir imagen:', error)
           toast.warning('Oferta creada pero hubo un error al subir la imagen')
         }
       } else {
@@ -168,14 +148,9 @@ export function JobsPage() {
       
       await loadData()
     } catch (error: any) {
-      console.error('❌ Error al crear oferta:', error)
-      console.error('📋 Respuesta del servidor:', error.response?.data)
-      
       // Mostrar errores de validación específicos
       if (error.response?.data?.errors) {
         const errors = error.response.data.errors
-        console.error('🔍 Errores de validación:', errors)
-        console.table(errors) // Mostrar en tabla para mejor visualización
         
         // Traducir errores comunes
         const errorTranslations: Record<string, string> = {
