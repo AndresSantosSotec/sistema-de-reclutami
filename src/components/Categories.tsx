@@ -40,9 +40,9 @@ export function Categories({ categories, onAddCategory, onUpdateCategory, onDele
     if (category) {
       setEditingCategory(category)
       setFormData({
-        name: category.name,
+        name: category.name ?? '',
         description: category.description || '',
-        isActive: category.isActive
+        isActive: category.isActive ?? true
       })
     } else {
       resetForm()
@@ -191,7 +191,7 @@ export function Categories({ categories, onAddCategory, onUpdateCategory, onDele
                   variant="outline"
                   size="sm"
                   className="gap-2 text-destructive hover:bg-destructive/10"
-                  onClick={() => handleDelete(category.id, category.name)}
+                  onClick={() => handleDelete(category.id, category.name ?? 'Sin nombre')}
                 >
                   <Trash size={16} />
                   Eliminar

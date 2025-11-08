@@ -4,15 +4,17 @@ import { Toaster } from 'sonner'
 import { Login } from './components/Login'
 import { Layout } from './components/Layout'
 import { Dashboard } from './components/Dashboard'
-import { Jobs } from './components/Jobs'
+import { JobsPage } from './components/JobsPage'
 import { Applications } from './components/Applications'
 import { Evaluations } from './components/Evaluations'
 import { Candidates } from './components/Candidates'
 import { Notifications } from './components/Notifications'
 import { AdminUsers } from './components/AdminUsers'
-import { Categories } from './components/Categories'
+import { CategoriesPage } from './components/CategoriesPage'
+import { SkillsPage } from './components/SkillsPage'
 import { TalentBank } from './components/TalentBank'
 import { Metrics } from './components/Metrics'
+import Gallery from './components/Gallery'
 import type { 
   JobOffer, 
   Application, 
@@ -387,13 +389,7 @@ function App() {
           />
         )}
         {currentView === 'jobs' && (
-          <Jobs
-            jobs={jobs || []}
-            categories={categoriesWithJobCount}
-            onAddJob={handleAddJob}
-            onUpdateJob={handleUpdateJob}
-            onDeleteJob={handleDeleteJob}
-          />
+          <JobsPage />
         )}
         {currentView === 'applications' && (
           <Applications
@@ -444,12 +440,7 @@ function App() {
           />
         )}
         {currentView === 'categories' && (
-          <Categories
-            categories={categoriesWithJobCount}
-            onAddCategory={handleAddCategory}
-            onUpdateCategory={handleUpdateCategory}
-            onDeleteCategory={handleDeleteCategory}
-          />
+          <CategoriesPage />
         )}
         {currentView === 'users' && (
           <AdminUsers
@@ -464,6 +455,12 @@ function App() {
             applications={applications || []}
             jobs={jobs || []}
           />
+        )}
+        {currentView === 'gallery' && (
+          <Gallery />
+        )}
+        {currentView === 'skills' && (
+          <SkillsPage />
         )}
       </Layout>
       <Toaster position="top-right" richColors />

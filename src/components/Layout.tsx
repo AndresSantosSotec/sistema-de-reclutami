@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { House, Briefcase, UserList, ClipboardText, Bell, SignOut, User, Users, Tag, Star, ChartBar } from '@phosphor-icons/react'
+import { House, Briefcase, UserList, ClipboardText, Bell, SignOut, User, Users, Tag, Star, ChartBar, Images, Lightbulb } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
 interface LayoutProps {
@@ -19,8 +19,10 @@ const navItems = [
   { id: 'candidates', label: 'Candidatos', icon: User },
   { id: 'talent-bank', label: 'Banco de Talento', icon: Star },
   { id: 'notifications', label: 'Notificaciones', icon: Bell },
+  { id: 'gallery', label: 'Galería', icon: Images },
   { id: 'metrics', label: 'Métricas', icon: ChartBar },
   { id: 'categories', label: 'Categorías', icon: Tag },
+  { id: 'skills', label: 'Habilidades', icon: Lightbulb },
   { id: 'users', label: 'Usuarios', icon: Users }
 ]
 

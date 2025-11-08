@@ -17,6 +17,19 @@ export interface AdminUser {
   lastLogin?: string
 }
 
+export interface JobCategory {
+  id: string
+  nombre?: string
+  name?: string
+  descripcion?: string
+  description?: string
+  estado?: boolean
+  isActive?: boolean
+  jobCount?: number
+  createdAt?: string
+  updatedAt?: string
+}
+
 export type JobStatus = 'active' | 'closed' | 'draft' | 'filled'
 
 export type JobVisibility = 'public' | 'internal'
@@ -46,13 +59,17 @@ export interface JobOffer {
   requirements: string
   location: string
   contractType: ContractType
+  salaryMin?: number
+  salaryMax?: number
   deadline: string
   visibility: JobVisibility
   status: JobStatus
   imageUrl?: string
+  images?: Array<{ id: string; url: string; descripcion?: string }>
+  skills?: Array<{ id: string; nombre: string; categoria?: string }>
   customQuestions?: CustomQuestion[]
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
 }
 
 export type CandidateStatus = 
@@ -172,15 +189,6 @@ export interface DashboardMetrics {
   candidatesHired: number
   applicationsByStatus: Record<CandidateStatus, number>
   recentApplications: number
-}
-
-export interface JobCategory {
-  id: string
-  name: string
-  description?: string
-  isActive: boolean
-  createdAt: string
-  jobCount?: number
 }
 
 export interface TalentBankCandidate extends Candidate {
