@@ -23,11 +23,11 @@ export interface UpdateCategoryData {
 }
 
 /**
- * Listar todas las categorías
+ * Listar todas las categorías (requiere auth admin)
  */
 export const getCategories = async (activasOnly = false) => {
   const params = activasOnly ? { activas: 'true' } : {}
-  const response = await api.get('/categorias', { params })
+  const response = await api.get('/admin/categorias', { params })
   return response.data.data as JobCategory[]
 }
 
@@ -35,7 +35,7 @@ export const getCategories = async (activasOnly = false) => {
  * Crear nueva categoría (requiere auth admin)
  */
 export const createCategory = async (data: CreateCategoryData) => {
-  const response = await api.post('/admin/job-categories', data)
+  const response = await api.post('/admin/categorias', data)
   return response.data
 }
 
@@ -43,7 +43,7 @@ export const createCategory = async (data: CreateCategoryData) => {
  * Actualizar categoría (requiere auth admin)
  */
 export const updateCategory = async (id: string, data: UpdateCategoryData) => {
-  const response = await api.put(`/admin/job-categories/${id}`, data)
+  const response = await api.put(`/admin/categorias/${id}`, data)
   return response.data
 }
 
@@ -51,6 +51,6 @@ export const updateCategory = async (id: string, data: UpdateCategoryData) => {
  * Eliminar categoría (requiere auth admin)
  */
 export const deleteCategory = async (id: string) => {
-  const response = await api.delete(`/admin/job-categories/${id}`)
+  const response = await api.delete(`/admin/categorias/${id}`)
   return response.data
 }

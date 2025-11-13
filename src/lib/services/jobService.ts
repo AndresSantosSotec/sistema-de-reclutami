@@ -70,7 +70,7 @@ export interface UpdateJobOfferData {
 }
 
 /**
- * Listar todas las ofertas (públicas o todas según auth)
+ * Listar todas las ofertas (admin)
  */
 export const getJobOffers = async (filters?: {
   categoria_id?: string
@@ -78,15 +78,15 @@ export const getJobOffers = async (filters?: {
   tipo_empleo?: string
   visibilidad?: string
 }) => {
-  const response = await api.get('/ofertas', { params: filters })
+  const response = await api.get('/admin/ofertas', { params: filters })
   return response.data.data as JobOffer[]
 }
 
 /**
- * Obtener una oferta específica
+ * Obtener una oferta específica (admin)
  */
 export const getJobOffer = async (id: string) => {
-  const response = await api.get(`/ofertas/${id}`)
+  const response = await api.get(`/admin/ofertas/${id}`)
   return response.data.data as JobOffer
 }
 
