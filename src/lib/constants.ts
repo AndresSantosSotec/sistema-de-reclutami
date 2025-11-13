@@ -1,10 +1,10 @@
 import { CandidateStatus, JobStatus, ContractType, EvaluationType, EvaluationMode, AdminRole } from './types'
 
 export const statusLabels: Record<CandidateStatus, string> = {
-  'pending': 'Pendiente',
-  'under-review': 'En Revisión',
-  'interview-scheduled': 'Entrevista Programada',
-  'technical-test': 'Prueba Técnica',
+  'pending': 'Postulado',
+  'under-review': 'CV Visto',
+  'interview-scheduled': 'En Proceso',
+  'technical-test': 'Finalista',
   'hired': 'Contratado',
   'rejected': 'Rechazado'
 }

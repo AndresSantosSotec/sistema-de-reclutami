@@ -52,12 +52,14 @@ export interface CustomQuestion {
 }
 
 export interface JobOffer {
-  id: string
-  title: string
-  categoryId?: string
-  description: string
-  requirements: string
-  location: string
+  id: string;
+  title: string;
+  company: string;
+  type: string;
+  categoryId?: string;
+  description: string;
+  requirements: string;
+  location: string;
   contractType: ContractType
   salaryMin?: number
   salaryMax?: number
@@ -91,7 +93,7 @@ export interface WorkExperience {
 }
 
 export interface Education {
-  id: string
+  id:string
   institution: string
   degree: string
   field: string
@@ -101,19 +103,17 @@ export interface Education {
 }
 
 export interface Candidate {
-  id: string
-  name: string
-  email: string
-  phone: string
-  linkedin?: string
-  resumeUrl?: string
-  photoUrl?: string
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  linkedin?: string;
+  portfolio?: string;
+  resume?: string;
+  avatar?: string;
   workExperience?: WorkExperience[]
   education?: Education[]
   skills?: string[]
-  appliedAt: string
-  status: CandidateStatus
-  currentJobId?: string
   profileCompleteness?: number
 }
 

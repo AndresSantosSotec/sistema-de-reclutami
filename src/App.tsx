@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useKV } from './hooks/use-kv-mock'
 import { Toaster } from 'sonner'
 import { Login } from './components/Login'
 import { Layout } from './components/Layout'
@@ -16,6 +16,7 @@ import { TalentBank } from './components/TalentBank'
 import { Metrics } from './components/Metrics'
 import Gallery from './components/Gallery'
 import UsersPage from './pages/UsersPage'
+import { adminAuthService } from './lib/adminAuthService'
 import type { 
   JobOffer, 
   Application, 
@@ -63,12 +64,41 @@ function App() {
     }))
   }, [categories, jobs])
 
+  // Verificar autenticación al cargar la aplicación
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = adminAuthService.getToken()
+      const user = adminAuthService.getUser()
+      
+      if (token && user) {
+        try {
+          // Verificar que el token siga siendo válido
+          await adminAuthService.me()
+          setIsAuthenticated(true)
+          setCurrentUser(user.email)
+        } catch (error) {
+          // Token inválido, limpiar autenticación
+          adminAuthService.clearAuth()
+          setIsAuthenticated(false)
+          setCurrentUser('')
+        }
+      }
+    }
+    
+    checkAuth()
+  }, [])
+
   const handleLogin = useCallback((email: string, userId: string) => {
     setIsAuthenticated(true)
     setCurrentUser(email)
   }, [])
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
+    try {
+      await adminAuthService.logout()
+    } catch (error) {
+      console.error('Error during logout:', error)
+    }
     setIsAuthenticated(false)
     setCurrentUser('')
     setCurrentView('dashboard')
@@ -393,12 +423,7 @@ function App() {
           <JobsPage />
         )}
         {currentView === 'applications' && (
-          <Applications
-            applications={applications || []}
-            candidates={candidates || []}
-            jobs={jobs || []}
-            onStatusChange={handleStatusChange}
-          />
+          <Applications />
         )}
         {currentView === 'evaluations' && (
           <Evaluations
