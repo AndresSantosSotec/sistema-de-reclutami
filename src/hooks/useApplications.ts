@@ -103,19 +103,21 @@ export function useApplications() {
     estado?: string
     oferta_id?: number
   }) => {
+    // Verificar token antes de hacer petición
+    const token = localStorage.getItem('admin_token')
+    if (!token) {
+      console.log('⏳ [useApplications] No hay token, esperando autenticación...')
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
       
+      console.log('🔄 [useApplications] Cargando postulaciones...')
       const backendApps = await adminApplicationService.getAllApplications(filters)
-      
-      // 🔍 DEBUG: Ver qué devuelve el backend
-      console.log('📋 [DEBUG] Respuesta del backend:', backendApps)
-      console.log('📋 [DEBUG] Total de aplicaciones:', backendApps.length)
-      
-      if (backendApps.length > 0) {
-        console.log('📋 [DEBUG] Primera aplicación:', backendApps[0])
-      }
+      console.log('✅ [useApplications] Postulaciones cargadas:', backendApps.length)
       
       const { mappedApplications, mappedCandidates, mappedJobs } = mapBackendToFrontend(backendApps)
       
@@ -123,11 +125,12 @@ export function useApplications() {
       setCandidates(mappedCandidates)
       setJobs(mappedJobs)
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Error al cargar las postulaciones'
-      console.error('❌ [ERROR] Error al cargar postulaciones:', err)
-      console.error('❌ [ERROR] Detalles:', err.response?.data)
-      setError(errorMessage)
-      toast.error(errorMessage)
+      console.error('❌ [useApplications] Error:', err.message)
+      if (err.response?.status !== 401) {
+        const errorMessage = err.response?.data?.message || 'Error al cargar las postulaciones'
+        setError(errorMessage)
+        toast.error(errorMessage)
+      }
     } finally {
       setLoading(false)
     }
@@ -171,8 +174,13 @@ export function useApplications() {
 
   // Cargar las postulaciones al montar el componente
   useEffect(() => {
-    fetchApplications()
-  }, [fetchApplications])
+    const token = localStorage.getItem('admin_token')
+    if (token) {
+      fetchApplications()
+    } else {
+      setLoading(false)
+    }
+  }, []) // Solo al montar
 
   return {
     applications,
@@ -181,6 +189,7 @@ export function useApplications() {
     loading,
     error,
     fetchApplications,
+    refetch: fetchApplications, // Agregar alias para refetch
     updateApplicationStatus,
   }
 }

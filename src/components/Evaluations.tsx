@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -8,11 +8,13 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Plus, ClipboardText, VideoCamera, CheckCircle, Clock, User } from '@phosphor-icons/react'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Plus, ClipboardText, VideoCamera, CheckCircle, Clock, User, MagnifyingGlass, CaretUpDown, Check } from '@phosphor-icons/react'
 import type { Evaluation, EvaluationType, EvaluationMode, Application, Candidate } from '@/lib/types'
 import { evaluationTypeLabels, evaluationModeLabels, formatDateTime } from '@/lib/constants'
 import { toast } from 'sonner'
-import {   } from '@/lib/evalationService'
+import { cn } from '@/lib/utils'
 
 
 
@@ -26,6 +28,8 @@ interface EvaluationsProps {
 
 export function Evaluations({ evaluations, applications, candidates, onAddEvaluation, onUpdateEvaluation }: EvaluationsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [candidateSearchOpen, setCandidateSearchOpen] = useState(false)
+  const [candidateSearchTerm, setCandidateSearchTerm] = useState('')
   const [formData, setFormData] = useState({
     applicationId: '',
     candidateId: '',
@@ -38,29 +42,61 @@ export function Evaluations({ evaluations, applications, candidates, onAddEvalua
     observations: ''
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Combinar candidatos con sus postulaciones para búsqueda
+  const candidateOptions = useMemo(() => {
+    return candidates.map(candidate => {
+      // Encontrar las postulaciones del candidato
+      const candidateApplications = applications.filter(app => app.candidateId === candidate.id)
+      return {
+        ...candidate,
+        applications: candidateApplications,
+        searchText: `${candidate.name} ${candidate.email} ${candidate.id}`.toLowerCase()
+      }
+    })
+  }, [candidates, applications])
+
+  // Filtrar candidatos por término de búsqueda
+  const filteredCandidates = useMemo(() => {
+    if (!candidateSearchTerm.trim()) return candidateOptions
+    const term = candidateSearchTerm.toLowerCase()
+    return candidateOptions.filter(c => c.searchText.includes(term))
+  }, [candidateOptions, candidateSearchTerm])
+
+  // Obtener candidato seleccionado
+  const selectedCandidate = candidates.find(c => c.id === formData.candidateId)
+  const selectedApplication = applications.find(a => a.id === formData.applicationId)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.applicationId || !formData.candidateId) {
-      toast.error('Selecciona una postulación')
+    if (!formData.candidateId) {
+      toast.error('Selecciona un candidato')
       return
     }
 
-    onAddEvaluation(formData)
-    toast.success('Evaluación programada correctamente')
-    
-    setFormData({
-      applicationId: '',
-      candidateId: '',
-      type: 'interview',
-      mode: 'virtual',
-      scheduledDate: '',
-      scheduledTime: '',
-      interviewer: '',
-      result: '',
-      observations: ''
-    })
-    setIsDialogOpen(false)
+    if (!formData.scheduledDate || !formData.scheduledTime) {
+      toast.error('Debes seleccionar fecha y hora')
+      return
+    }
+
+    try {
+      await onAddEvaluation(formData)
+      setFormData({
+        applicationId: '',
+        candidateId: '',
+        type: 'interview',
+        mode: 'virtual',
+        scheduledDate: '',
+        scheduledTime: '',
+        interviewer: '',
+        result: '',
+        observations: ''
+      })
+      setCandidateSearchTerm('')
+      setIsDialogOpen(false)
+    } catch (error) {
+      // El error ya se maneja en App.tsx
+    }
   }
 
   const handleComplete = (id: string) => {
@@ -101,34 +137,105 @@ export function Evaluations({ evaluations, applications, candidates, onAddEvalua
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Buscador de Candidatos */}
               <div className="space-y-2">
-                <Label htmlFor="application">Candidato / Postulación *</Label>
-                <Select 
-                  value={formData.applicationId} 
-                  onValueChange={(value) => {
-                    const app = applications.find(a => a.id === value)
-                    setFormData({ 
-                      ...formData, 
-                      applicationId: value,
-                      candidateId: app?.candidateId || ''
-                    })
-                  }}
-                >
-                  <SelectTrigger id="application">
-                    <SelectValue placeholder="Selecciona una postulación" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {applications.map(app => {
-                      const candidate = candidates.find(c => c.id === app.candidateId)
-                      return (
-                        <SelectItem key={app.id} value={app.id}>
-                          {candidate?.name} - {app.id.slice(0, 8)}
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
+                <Label>Buscar Candidato *</Label>
+                <Popover open={candidateSearchOpen} onOpenChange={setCandidateSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={candidateSearchOpen}
+                      className="w-full justify-between h-auto min-h-[40px] py-2"
+                    >
+                      {selectedCandidate ? (
+                        <div className="flex flex-col items-start text-left">
+                          <span className="font-medium">{selectedCandidate.name}</span>
+                          <span className="text-xs text-muted-foreground">{selectedCandidate.email}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">Buscar por nombre, correo o ID...</span>
+                      )}
+                      <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0" align="start">
+                    <Command>
+                      <CommandInput 
+                        placeholder="Buscar candidato..." 
+                        value={candidateSearchTerm}
+                        onValueChange={setCandidateSearchTerm}
+                      />
+                      <CommandList>
+                        <CommandEmpty>No se encontraron candidatos</CommandEmpty>
+                        <CommandGroup heading="Candidatos">
+                          {filteredCandidates.slice(0, 10).map((candidate) => (
+                            <CommandItem
+                              key={candidate.id}
+                              value={candidate.searchText}
+                              onSelect={() => {
+                                // Si tiene postulaciones, seleccionar la primera
+                                const firstApp = candidate.applications[0]
+                                setFormData({
+                                  ...formData,
+                                  candidateId: candidate.id,
+                                  applicationId: firstApp?.id || ''
+                                })
+                                setCandidateSearchOpen(false)
+                                setCandidateSearchTerm('')
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  formData.candidateId === candidate.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex flex-col flex-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">{candidate.name}</span>
+                                  <Badge variant="outline" className="text-xs ml-2">
+                                    ID: {candidate.id.slice(0, 8)}
+                                  </Badge>
+                                </div>
+                                <span className="text-xs text-muted-foreground">{candidate.email}</span>
+                                {candidate.applications.length > 0 && (
+                                  <span className="text-xs text-primary mt-1">
+                                    {candidate.applications.length} postulación(es)
+                                  </span>
+                                )}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
+
+              {/* Selector de Postulación (si el candidato tiene varias) */}
+              {selectedCandidate && (candidateOptions.find(c => c.id === selectedCandidate.id)?.applications?.length ?? 0) > 1 && (
+                <div className="space-y-2">
+                  <Label htmlFor="application">Seleccionar Postulación</Label>
+                  <Select 
+                    value={formData.applicationId} 
+                    onValueChange={(value) => setFormData({ ...formData, applicationId: value })}
+                  >
+                    <SelectTrigger id="application">
+                      <SelectValue placeholder="Selecciona una postulación" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {candidateOptions.find(c => c.id === selectedCandidate.id)?.applications.map(app => (
+                        <SelectItem key={app.id} value={app.id}>
+                          Postulación #{app.id.slice(0, 8)} - {app.status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

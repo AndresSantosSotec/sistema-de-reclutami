@@ -493,16 +493,19 @@ export default function Gallery() {
                   <div className="relative aspect-video bg-gray-100">
                     {post.media_type === 'video' ? (
                       <video
-                        src={`http://localhost:8000${post.video_url}`}
-                        poster={post.video_thumbnail_url ? `http://localhost:8000${post.video_thumbnail_url}` : undefined}
+                        src={post.video_url ? `http://localhost:8000${post.video_url}` : undefined}
                         className="w-full h-full object-cover"
                         controls
+                        preload="metadata"
                       />
                     ) : (
                       <img
-                        src={`http://localhost:8000${post.thumbnail_url}`}
+                        src={post.thumbnail_url ? `http://localhost:8000${post.thumbnail_url}` : `http://localhost:8000${post.image_url}`}
                         alt={post.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'http://localhost:8000/images/placeholder.svg'
+                        }}
                       />
                     )}
                     <div className="absolute top-2 right-2 flex gap-1">
