@@ -84,17 +84,27 @@ export function mapTalentBankEntryToCandidate(entry: TalentBankEntry): TalentBan
 
 export const talentBankService = {
   /**
-   * Obtener todos los candidatos del banco de talento
+   * Obtener todos los candidatos del banco de talento con paginación
    */
   async getAll(filters?: {
     prioridad?: 'baja' | 'media' | 'alta'
     disponible?: boolean
     search?: string
-  }): Promise<TalentBankEntry[]> {
+    page?: number
+    per_page?: number
+  }): Promise<{
+    data: TalentBankEntry[]
+    total: number
+    per_page: number
+    current_page: number
+    last_page: number
+  }> {
     const params = new URLSearchParams()
     if (filters?.prioridad) params.append('prioridad', filters.prioridad)
     if (filters?.disponible !== undefined) params.append('disponible', String(filters.disponible))
     if (filters?.search) params.append('search', filters.search)
+    if (filters?.page) params.append('page', filters.page.toString())
+    if (filters?.per_page) params.append('per_page', filters.per_page.toString())
 
     console.log('🔄 [talentBankService] Obteniendo banco de talento:', {
       url: `${API_URL}/admin/talent-bank`,
@@ -110,10 +120,18 @@ export const talentBankService = {
     console.log('✅ [talentBankService] Respuesta recibida:', {
       success: response.data.success,
       count: response.data.data?.length || 0,
-      data: response.data.data
+      total: response.data.total,
+      current_page: response.data.current_page,
+      last_page: response.data.last_page
     })
 
-    return response.data.data || []
+    return {
+      data: response.data.data || [],
+      total: response.data.total || 0,
+      per_page: response.data.per_page || 50,
+      current_page: response.data.current_page || 1,
+      last_page: response.data.last_page || 1
+    }
   },
 
   /**

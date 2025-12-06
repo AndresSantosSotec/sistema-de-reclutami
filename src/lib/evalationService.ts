@@ -103,9 +103,17 @@ const mapBackendToFrontend = (backend: BackendEvaluation) => {
 
 const evalationService = {
   // Listar evaluaciones
-  async getEvaluations(): Promise<any[]> {
+  async getEvaluations(filters?: { postulante_id?: number }): Promise<any[]> {
     try {
-      const response = await axios.get(`${API_URL}/admin/evaluations`, getAuthHeaders())
+      const params = new URLSearchParams()
+      if (filters?.postulante_id) {
+        params.append('postulante_id', filters.postulante_id.toString())
+      }
+      
+      const queryString = params.toString()
+      const url = `${API_URL}/admin/evaluations${queryString ? `?${queryString}` : ''}`
+      
+      const response = await axios.get(url, getAuthHeaders())
       const backendEvaluations: BackendEvaluation[] = response.data.data || []
       return backendEvaluations.map(mapBackendToFrontend)
     } catch (error: any) {

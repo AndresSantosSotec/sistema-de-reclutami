@@ -11,9 +11,19 @@ export function useTalentBank(initialFilters?: UseTalentBankFilters) {
   const [talentBank, setTalentBank] = useState<TalentBankEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [pagination, setPagination] = useState({
+    total: 0,
+    per_page: 50,
+    current_page: 1,
+    last_page: 1
+  })
   const isLoadingRef = useRef(false)
 
-  const fetchTalentBank = useCallback(async (filters?: UseTalentBankFilters) => {
+  const fetchTalentBank = useCallback(async (filters?: UseTalentBankFilters & {
+    page?: number
+    per_page?: number
+    search?: string
+  }) => {
     // Evitar llamadas duplicadas
     if (isLoadingRef.current) {
       console.log('⏳ [useTalentBank] Ya hay una carga en progreso, ignorando...')
@@ -34,10 +44,16 @@ export function useTalentBank(initialFilters?: UseTalentBankFilters) {
     setError(null)
     
     try {
-      console.log('🔄 [useTalentBank] Cargando banco de talento...')
-      const data = await talentBankService.getAll(filters)
-      console.log('✅ [useTalentBank] Datos recibidos:', data?.length || 0, 'candidatos')
-      setTalentBank(data || [])
+      console.log('🔄 [useTalentBank] Cargando banco de talento...', filters)
+      const response = await talentBankService.getAll(filters)
+      console.log('✅ [useTalentBank] Datos recibidos:', response.data?.length || 0, 'de', response.total, 'candidatos')
+      setTalentBank(response.data || [])
+      setPagination({
+        total: response.total,
+        per_page: response.per_page,
+        current_page: response.current_page,
+        last_page: response.last_page
+      })
     } catch (err: any) {
       console.error('❌ [useTalentBank] Error:', err.message)
       // Si es error de autenticación, limpiar datos
@@ -124,6 +140,8 @@ export function useTalentBank(initialFilters?: UseTalentBankFilters) {
     talentBank,
     loading,
     error,
+    pagination,
+    fetchTalentBank,
     refetch,
     addToTalentBank,
     updateTalentBank,

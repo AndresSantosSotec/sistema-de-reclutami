@@ -7,7 +7,7 @@ import { JobsPage } from './components/JobsPage'
 import { Applications } from './components/Applications'
 import { EvaluationsPanel } from './components/evaluations/EvaluationsPanel'
 import { Candidates } from './components/Candidates'
-import { Notifications } from './components/Notifications'
+import { Notifications } from './components/notifications/NotificationsAdmin'
 import { AdminUsers } from './components/AdminUsers'
 import { CategoriesPage } from './components/CategoriesPage'
 import { SkillsPage } from './components/SkillsPage'
@@ -16,6 +16,7 @@ import { Metrics } from './components/Metrics'
 import Gallery from './components/Gallery'
 import UsersPage from './pages/UsersPage'
 import { adminAuthService } from './lib/adminAuthService'
+import { adminCandidateService } from './lib/adminCandidateService'
 import { useTalentBank } from './hooks/useTalentBank'
 import { useJobs } from './hooks/useJobs'
 import { useApplications } from './hooks/useApplications'
@@ -54,11 +55,17 @@ function App() {
   const { 
     talentBank: talentBankData, 
     loading: talentBankLoading,
+    pagination: talentBankPagination,
+    fetchTalentBank,
     addToTalentBank: addToTalentBankAPI,
     updateTalentBank: updateTalentBankAPI,
     checkCandidate: checkCandidateAPI,
     refetch: refetchTalentBank
   } = useTalentBank()
+  
+  // Estado de paginación para TalentBank
+  const [talentBankPage, setTalentBankPage] = useState(1)
+  const [talentBankPerPage, setTalentBankPerPage] = useState(50)
   
   // Evaluaciones - Conectadas al backend
   const [evaluations, setEvaluations] = useState<Evaluation[]>([])
@@ -92,13 +99,25 @@ function App() {
     }
   }, [isAuthenticated, reloadEvaluations])
 
-  // Recargar banco de talento cuando se navega a esa vista
+  // Handler para cambio de página en TalentBank
+  const handleTalentBankPageChange = useCallback((page: number, perPage: number) => {
+    setTalentBankPage(page)
+    setTalentBankPerPage(perPage)
+  }, [])
+  
+  // Recargar banco de talento cuando se navega a esa vista o cambia la página
   useEffect(() => {
     if (currentView === 'talent-bank' && isAuthenticated) {
-      console.log('📂 [App] Navegando a banco de talento, recargando datos...')
-      refetchTalentBank()
+      console.log('📂 [App] Navegando a banco de talento, recargando datos...', {
+        page: talentBankPage,
+        per_page: talentBankPerPage
+      })
+      fetchTalentBank({
+        page: talentBankPage,
+        per_page: talentBankPerPage
+      })
     }
-  }, [currentView, isAuthenticated, refetchTalentBank])
+  }, [currentView, isAuthenticated, talentBankPage, talentBankPerPage, fetchTalentBank])
 
   const categoriesWithJobCount = useMemo(() => {
     return (categories || []).map(category => ({
@@ -485,48 +504,35 @@ function App() {
     const candidate = (candidates || []).find(c => c.id === candidateId)
     if (!candidate) return
 
-    const cvText = `
-      Nombre: ${candidate.name}
-      Email: ${candidate.email}
-      Habilidades: ${candidate.skills?.join(', ') || 'No especificadas'}
-      Experiencia Laboral: ${candidate.workExperience?.map(exp => 
-        `${exp.position} en ${exp.company} (${exp.startDate} - ${exp.current ? 'Presente' : exp.endDate})`
-      ).join('; ') || 'No especificada'}
-      Educación: ${candidate.education?.map(edu => 
-        `${edu.degree} en ${edu.field} - ${edu.institution}`
-      ).join('; ') || 'No especificada'}
-    `
-
-    const promptText = `
-      Analiza el siguiente perfil de candidato y proporciona una evaluación detallada:
-      
-      ${cvText}
-      
-      Por favor proporciona:
-      1. Lista de habilidades técnicas identificadas (máximo 8)
-      2. Experiencias laborales más relevantes (máximo 5 puntos)
-      3. Puntuación de compatibilidad del 0-100
-      4. Fortalezas principales (máximo 5)
-      5. Áreas de atención o debilidades (máximo 5)
-      6. Recomendación final en una oración
-
-      Responde ÚNICAMENTE con un objeto JSON válido con esta estructura exacta:
-      {
-        "skills": ["habilidad1", "habilidad2"],
-        "experience": ["experiencia1", "experiencia2"],
-        "matchScore": 85,
-        "strengths": ["fortaleza1", "fortaleza2"],
-        "concerns": ["concern1", "concern2"],
-        "recommendation": "texto de recomendación"
-      }
-    `
-
     try {
-      const response = await window.spark.llm(promptText, 'gpt-4o', true)
-      const analysis = JSON.parse(response)
+      // Obtener job_id desde la aplicación si existe
+      let jobId: number | undefined = undefined
+      if (applicationId) {
+        const application = applications?.find(app => app.id === applicationId)
+        if (application?.jobId) {
+          jobId = typeof application.jobId === 'string' ? parseInt(application.jobId) : application.jobId
+        }
+      }
+
+      // Llamar al endpoint del backend (SIN IA - solo matching de habilidades)
+      const response = await adminCandidateService.analyzeCompatibility(
+        parseInt(candidateId),
+        applicationId,
+        jobId
+      )
+
+      const analysis = response.data
+
+      // Construir cvText para compatibilidad con el formato existente
+      const cvText = `
+        Nombre: ${candidate.name}
+        Email: ${candidate.email}
+        Habilidades: ${analysis.skills.join(', ') || 'No especificadas'}
+        Experiencia Laboral: ${analysis.experience.join('; ') || 'No especificada'}
+      `
 
       const aiAnalysis: AIAnalysis = {
-        id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         candidateId,
         applicationId,
         cvText,
@@ -536,7 +542,7 @@ function App() {
         strengths: analysis.strengths || [],
         concerns: analysis.concerns || [],
         recommendation: analysis.recommendation || 'No se pudo generar recomendación',
-        analyzedAt: new Date().toISOString()
+        analyzedAt: analysis.analyzed_at || new Date().toISOString()
       }
 
       setAiAnalyses(current => {
@@ -549,53 +555,7 @@ function App() {
       console.error('Error analyzing candidate:', error)
       throw error
     }
-  }, [candidates, setAiAnalyses])
-
-  const handleSendPsychometricTest = useCallback((test: Omit<PsychometricTest, 'id' | 'sentAt'>) => {
-    const newTest: PsychometricTest = {
-      ...test,
-      id: `psy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      sentAt: new Date().toISOString()
-    }
-    setPsychometricTests(current => [...(current || []), newTest])
-
-    const notification: Notification = {
-      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      candidateId: test.candidateId,
-      subject: 'Prueba Psicométrica Enviada',
-      message: `Se te ha enviado una prueba psicométrica: ${test.testName}${test.externalUrl ? `. Accede aquí: ${test.externalUrl}` : ''}`,
-      sentAt: new Date().toISOString(),
-      sentBy: currentUser,
-      type: 'manual',
-      read: false
-    }
-    setNotifications(current => [...(current || []), notification])
-  }, [setPsychometricTests, setNotifications, currentUser])
-
-  const handleUpdatePsychometricTest = useCallback((testId: string, updates: Partial<PsychometricTest>) => {
-    setPsychometricTests(current =>
-      (current || []).map(test =>
-        test.id === testId ? { ...test, ...updates } : test
-      )
-    )
-
-    if (updates.status === 'completed') {
-      const test = (psychometricTests || []).find(t => t.id === testId)
-      if (test) {
-        const notification: Notification = {
-          id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          candidateId: test.candidateId,
-          subject: 'Prueba Psicométrica Completada',
-          message: `Tu prueba psicométrica "${test.testName}" ha sido registrada como completada.`,
-          sentAt: new Date().toISOString(),
-          sentBy: 'Sistema Automático',
-          type: 'automatic',
-          read: false
-        }
-        setNotifications(current => [...(current || []), notification])
-      }
-    }
-  }, [setPsychometricTests, psychometricTests, setNotifications])
+  }, [candidates, applications, setAiAnalyses])
 
   if (!isAuthenticated) {
     return (
@@ -656,16 +616,15 @@ function App() {
                 jobs={jobs || []}
                 onSuggestJob={handleSuggestJob}
                 onUpdateNotes={handleUpdateTalentBankNotes}
+                pagination={talentBankPagination}
+                onPageChange={handleTalentBankPageChange}
+                loading={talentBankLoading}
               />
             )}
           </>
         )}
         {currentView === 'notifications' && (
-          <Notifications
-            notifications={notifications || []}
-            candidates={candidates || []}
-            onSendNotification={handleSendNotification}
-          />
+          <Notifications />
         )}
         {currentView === 'categories' && (
           <CategoriesPage />
@@ -674,10 +633,7 @@ function App() {
           <UsersPage />
         )}
         {currentView === 'metrics' && (
-          <Metrics
-            applications={applications || []}
-            jobs={jobs || []}
-          />
+          <Metrics />
         )}
         {currentView === 'gallery' && (
           <Gallery />

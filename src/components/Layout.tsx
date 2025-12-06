@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { House, Briefcase, UserList, ClipboardText, Bell, SignOut, User, Users, Tag, Star, ChartBar, Images, Lightbulb } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { getUserPermissions, type UserPermission } from '@/services/userService'
+import { NotificationBell } from './notifications/NotificationBell'
 
 interface LayoutProps {
   children: ReactNode
@@ -220,6 +221,24 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Header para desktop - con notificaciones */}
+        <header className="hidden md:flex bg-card border-b border-border px-6 py-3 items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-foreground">
+              {filteredNavItems.find(item => item.id === currentView)?.label || 'Dashboard'}
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <NotificationBell onNavigate={onNavigate} />
+            <Separator orientation="vertical" className="h-6" />
+            <div className="flex items-center gap-2 text-sm">
+              <User size={16} className="text-muted-foreground" />
+              <span className="text-muted-foreground">{currentUser?.name || 'Usuario'}</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Header móvil */}
         <header className="md:hidden bg-card border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -228,9 +247,12 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
               </div>
               <h2 className="font-semibold">Coosajer Empleos</h2>
             </div>
-            <Button variant="ghost" size="sm" onClick={onLogout}>
-              <SignOut size={20} />
-            </Button>
+            <div className="flex items-center gap-2">
+              <NotificationBell onNavigate={onNavigate} />
+              <Button variant="ghost" size="sm" onClick={onLogout}>
+                <SignOut size={20} />
+              </Button>
+            </div>
           </div>
         </header>
 

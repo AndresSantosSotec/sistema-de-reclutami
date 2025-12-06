@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,18 +8,28 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { Users, MagnifyingGlass, EnvelopeSimple, Phone, Briefcase, GraduationCap, Star, Sparkle, PaperPlaneTilt, ClockCounterClockwise, CheckCircle, XCircle, Eye, Clock } from '@phosphor-icons/react'
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination'
+import { Users, MagnifyingGlass, EnvelopeSimple, Phone, Briefcase, GraduationCap, Star, Sparkle, PaperPlaneTilt, ClockCounterClockwise, CheckCircle, XCircle, Eye, Clock, Funnel, Info, CaretDown, CaretUp, Calendar, User } from '@phosphor-icons/react'
 import { formatDate } from '@/lib/constants'
 import { talentBankService } from '@/lib/talentBankService'
 import { toast } from 'sonner'
 import type { TalentBankCandidate, JobOffer } from '@/lib/types'
 import { SuggestedJobsHistoryDialog } from './talent-bank/SuggestedJobsHistory'
+import { TalentBankCard } from './talent-bank/TalentBankCard'
 
 interface TalentBankProps {
   talentBankCandidates: TalentBankCandidate[]
   jobs: JobOffer[]
   onSuggestJob: (candidateId: string, jobId: string) => void
   onUpdateNotes: (candidateId: string, notes: string) => void
+  pagination?: {
+    total: number
+    per_page: number
+    current_page: number
+    last_page: number
+  }
+  onPageChange?: (page: number, perPage: number) => void
+  loading?: boolean
 }
 
 interface MatchedJob {
@@ -38,9 +48,21 @@ interface SuggestedJobInfo {
   job_id: number
   estado: 'pendiente' | 'visto' | 'aplicado' | 'descartado'
   created_at: string
+  email_enviado?: boolean
+  notificacion_enviada?: boolean
+  notas?: string | null
+  sugerido_por?: string | null
 }
 
-export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateNotes }: TalentBankProps) {
+export function TalentBank({ 
+  talentBankCandidates, 
+  jobs, 
+  onSuggestJob, 
+  onUpdateNotes,
+  pagination: externalPagination,
+  onPageChange,
+  loading: externalLoading = false
+}: TalentBankProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCandidate, setSelectedCandidate] = useState<TalentBankCandidate | null>(null)
   const [notes, setNotes] = useState('')
@@ -54,24 +76,62 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false)
   const [suggestedJobs, setSuggestedJobs] = useState<SuggestedJobInfo[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const [showMoreInfo, setShowMoreInfo] = useState(false)
 
-  // 🔍 DEBUG: Log de datos recibidos
+  // Paginación: usar la del backend si está disponible, sino local
+  const [currentPage, setCurrentPage] = useState(1)
+  const [perPage, setPerPage] = useState(50)
+  
+  // Si hay paginación externa, usar esa
+  const pagination = externalPagination || {
+    total: talentBankCandidates.length,
+    per_page: perPage,
+    current_page: currentPage,
+    last_page: Math.ceil(talentBankCandidates.length / perPage)
+  }
+
+  // Optimizar filtrado con useMemo (solo si no hay paginación del backend)
+  const filteredCandidates = useMemo(() => {
+    // Si hay paginación del backend, los candidatos ya vienen filtrados
+    if (externalPagination) {
+      return talentBankCandidates
+    }
+    
+    // Si no hay paginación del backend, filtrar localmente
+    if (!searchTerm.trim()) {
+      return talentBankCandidates
+    }
+    
+    const searchLower = searchTerm.toLowerCase()
+    return talentBankCandidates.filter(candidate =>
+      candidate.name.toLowerCase().includes(searchLower) ||
+      candidate.email.toLowerCase().includes(searchLower) ||
+      candidate.skills?.some(skill => skill.toLowerCase().includes(searchLower))
+    )
+  }, [talentBankCandidates, searchTerm, externalPagination])
+
+  // Paginación de candidatos filtrados (solo si no hay paginación del backend)
+  const paginatedCandidates = useMemo(() => {
+    if (externalPagination) {
+      // Si hay paginación del backend, usar todos los candidatos recibidos
+      return filteredCandidates
+    }
+    
+    // Paginación local
+    const startIndex = (currentPage - 1) * perPage
+    const endIndex = startIndex + perPage
+    return filteredCandidates.slice(startIndex, endIndex)
+  }, [filteredCandidates, currentPage, perPage, externalPagination])
+
+  // Resetear página cuando cambia el filtro
   useEffect(() => {
-    console.log('📊 [TalentBank] Componente renderizado:', {
-      totalCandidates: talentBankCandidates.length,
-      candidates: talentBankCandidates.map(c => ({
-        id: c.id,
-        name: c.name,
-        email: c.email
-      }))
-    })
-  }, [talentBankCandidates])
-
-  const filteredCandidates = talentBankCandidates.filter(candidate =>
-    candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    candidate.skills?.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+    if (onPageChange) {
+      // Si hay callback de cambio de página, notificar al padre
+      onPageChange(1, perPage)
+    } else {
+      setCurrentPage(1)
+    }
+  }, [searchTerm, onPageChange, perPage])
 
   useEffect(() => {
     const loadMatchedJobs = async () => {
@@ -146,7 +206,11 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
         setSuggestedJobs(data.map((s: any) => ({
           job_id: s.job?.id,
           estado: s.estado,
-          created_at: s.fecha
+          created_at: s.fecha,
+          email_enviado: s.email_enviado || false,
+          notificacion_enviada: s.notificacion_enviada || false,
+          notas: s.notas || null,
+          sugerido_por: s.sugerido_por || null
         })))
       } catch (error) {
         console.error('Error al cargar sugerencias:', error)
@@ -164,10 +228,21 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
     return suggestedJobs.find(s => s.job_id === jobId)
   }
 
+  // Helper para obtener iniciales del nombre
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
   const handleOpenDialog = (candidate: TalentBankCandidate) => {
     setSelectedCandidate(candidate)
     setNotes(candidate.notes || '')
     setSuggestionNotes('')
+    setShowMoreInfo(false) // Resetear la sección de más información
   }
 
   const handleSuggestJobWithNotification = async (jobId: number) => {
@@ -226,9 +301,6 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
     }
   }
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  }
 
   return (
     <div className="space-y-6">
@@ -240,7 +312,8 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
           </p>
         </div>
         <Badge variant="secondary" className="text-lg px-4 py-2">
-          {talentBankCandidates.length} candidatos
+          {pagination.total} {searchTerm ? 'resultados' : 'candidatos'}
+          {pagination.last_page > 1 && ` (Página ${pagination.current_page} de ${pagination.last_page})`}
         </Badge>
       </div>
 
@@ -249,65 +322,40 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
         <Input
           placeholder="Buscar por nombre, correo o habilidades..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            const newValue = e.target.value
+            setSearchTerm(newValue)
+            // Si hay paginación del backend, notificar cambio de búsqueda después de un delay
+            if (onPageChange && externalPagination) {
+              // Resetear a página 1 cuando cambia la búsqueda
+              setTimeout(() => {
+                onPageChange(1, pagination.per_page)
+              }, 500)
+            }
+          }}
           className="pl-10"
         />
       </div>
+      
+      {externalLoading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-muted-foreground">Cargando candidatos...</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCandidates.map((candidate) => (
-          <Card key={candidate.id} className="hover:shadow-lg transition-all cursor-pointer" onClick={() => handleOpenDialog(candidate)}>
-            <CardHeader>
-              <div className="flex items-start gap-4">
-                <Avatar className="w-16 h-16">
-                  <AvatarImage src={candidate.avatar} alt={candidate.name} />
-                  <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                    {getInitials(candidate.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-lg truncate">{candidate.name}</CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                    <EnvelopeSimple size={14} />
-                    <span className="truncate">{candidate.email}</span>
-                  </div>
-                  {candidate.phone && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                      <Phone size={14} />
-                      <span>{candidate.phone}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {candidate.skills && candidate.skills.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Habilidades</p>
-                  <div className="flex flex-wrap gap-1">
-                    {candidate.skills.slice(0, 4).map((skill, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {skill}
-                      </Badge>
-                    ))}
-                    {candidate.skills.length > 4 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{candidate.skills.length - 4}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              )}
-              <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground">
-                  Agregado: {formatDate(candidate.addedToTalentBank)}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        {paginatedCandidates.map((candidate) => (
+          <TalentBankCard
+            key={candidate.id}
+            candidate={candidate}
+            onClick={handleOpenDialog}
+          />
         ))}
 
-        {filteredCandidates.length === 0 && (
+        {paginatedCandidates.length === 0 && (
           <Card className="col-span-full py-12">
             <CardContent className="flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -327,7 +375,89 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
         )}
       </div>
 
-      <Dialog open={!!selectedCandidate} onOpenChange={() => setSelectedCandidate(null)}>
+      {/* Paginación optimizada - usar paginación del backend si está disponible */}
+      {pagination.last_page > 1 && (
+        <div className="mt-6">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => {
+                    const newPage = Math.max(1, pagination.current_page - 1)
+                    if (onPageChange) {
+                      onPageChange(newPage, pagination.per_page)
+                    } else {
+                      setCurrentPage(newPage)
+                    }
+                  }}
+                  className={pagination.current_page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.min(5, pagination.last_page) }, (_, i) => {
+                let pageNum: number
+                if (pagination.last_page <= 5) {
+                  pageNum = i + 1
+                } else if (pagination.current_page <= 3) {
+                  pageNum = i + 1
+                } else if (pagination.current_page >= pagination.last_page - 2) {
+                  pageNum = pagination.last_page - 4 + i
+                } else {
+                  pageNum = pagination.current_page - 2 + i
+                }
+                
+                return (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      onClick={() => {
+                        if (onPageChange) {
+                          onPageChange(pageNum, pagination.per_page)
+                        } else {
+                          setCurrentPage(pageNum)
+                        }
+                      }}
+                      isActive={pagination.current_page === pageNum}
+                      className="cursor-pointer"
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              })}
+              
+              {pagination.last_page > 5 && pagination.current_page < pagination.last_page - 2 && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => {
+                    const newPage = Math.min(pagination.last_page, pagination.current_page + 1)
+                    if (onPageChange) {
+                      onPageChange(newPage, pagination.per_page)
+                    } else {
+                      setCurrentPage(newPage)
+                    }
+                  }}
+                  className={pagination.current_page === pagination.last_page ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+          <div className="text-center text-sm text-muted-foreground mt-2">
+            Mostrando {((pagination.current_page - 1) * pagination.per_page) + 1} - {Math.min(pagination.current_page * pagination.per_page, pagination.total)} de {pagination.total} candidatos
+          </div>
+        </div>
+      )}
+
+      <Dialog open={!!selectedCandidate} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedCandidate(null)
+          setShowMoreInfo(false) // Resetear al cerrar
+        }
+      }}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           {selectedCandidate && (
             <>
@@ -341,7 +471,7 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
                   </Avatar>
                   <div className="flex-1">
                     <DialogTitle className="text-2xl">{selectedCandidate.name}</DialogTitle>
-                    <DialogDescription className="space-y-1 mt-2">
+                    <div className="space-y-1 mt-2 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <EnvelopeSimple size={16} />
                         <span>{selectedCandidate.email}</span>
@@ -352,7 +482,7 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
                           <span>{selectedCandidate.phone}</span>
                         </div>
                       )}
-                    </DialogDescription>
+                    </div>
                   </div>
                 </div>
               </DialogHeader>
@@ -416,6 +546,87 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
                     </div>
                   </div>
                 )}
+
+                {/* Sección de Más Información */}
+                <div className="border rounded-lg">
+                  <button
+                    onClick={() => setShowMoreInfo(!showMoreInfo)}
+                    className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Info size={20} className="text-primary" weight="duotone" />
+                      <h3 className="font-semibold">Más Información</h3>
+                    </div>
+                    {showMoreInfo ? (
+                      <CaretUp size={20} className="text-muted-foreground" />
+                    ) : (
+                      <CaretDown size={20} className="text-muted-foreground" />
+                    )}
+                  </button>
+                  
+                  {showMoreInfo && (
+                    <div className="p-4 space-y-4 border-t bg-muted/20">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Agregado al Banco</p>
+                          <p className="text-sm font-medium">
+                            {formatDate(selectedCandidate.addedToTalentBank)}
+                          </p>
+                        </div>
+                        {selectedCandidate.location && (
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Ubicación</p>
+                            <p className="text-sm font-medium">{selectedCandidate.location}</p>
+                          </div>
+                        )}
+                        {selectedCandidate.profession && (
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Profesión</p>
+                            <p className="text-sm font-medium">{selectedCandidate.profession}</p>
+                          </div>
+                        )}
+                        {selectedCandidate.phone && (
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Teléfono</p>
+                            <p className="text-sm font-medium">{selectedCandidate.phone}</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {selectedCandidate.notes && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Notas Actuales</p>
+                          <p className="text-sm bg-background p-2 rounded border">
+                            {selectedCandidate.notes || 'Sin notas'}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {suggestedJobs.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Vacantes Sugeridas</p>
+                          <p className="text-sm font-medium">
+                            {suggestedJobs.length} vacante{suggestedJobs.length > 1 ? 's' : ''} sugerida{suggestedJobs.length > 1 ? 's' : ''}
+                          </p>
+                          <div className="mt-2 space-y-1">
+                            {suggestedJobs.map((s, idx) => {
+                              const job = matchedJobs.find(j => j.id === s.job_id)
+                              if (!job) return null
+                              return (
+                                <div key={idx} className="text-xs bg-background p-2 rounded border flex items-center justify-between">
+                                  <span className="truncate">{job.title}</span>
+                                  <Badge variant="outline" className="ml-2 shrink-0 text-xs">
+                                    {s.estado}
+                                  </Badge>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <div>
                   <h3 className="font-semibold mb-3">Notas Internas</h3>
@@ -549,10 +760,35 @@ export function TalentBank({ talentBankCandidates, jobs, onSuggestJob, onUpdateN
                               </div>
                               
                               {isSuggested ? (
-                                <div className="text-xs text-muted-foreground text-center py-2 border-t">
-                                  Sugerida el {formatDate(suggestion.created_at)}
+                                <div className="space-y-2 pt-2 border-t">
+                                  <div className="flex items-center justify-between text-xs">
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                      <Calendar size={12} />
+                                      <span>Sugerida el {formatDate(suggestion.created_at)}</span>
+                                    </div>
+                                    {suggestion.email_enviado && (
+                                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 gap-1">
+                                        <EnvelopeSimple size={10} weight="fill" />
+                                        Email enviado
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {suggestion.notas && (
+                                    <div className="text-xs bg-muted/50 p-2 rounded italic">
+                                      <strong>Nota:</strong> {suggestion.notas}
+                                    </div>
+                                  )}
+                                  {suggestion.sugerido_por && (
+                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <User size={12} />
+                                      Sugerido por: {suggestion.sugerido_por}
+                                    </div>
+                                  )}
                                   {suggestion.estado === 'aplicado' && (
-                                    <span className="text-green-600 ml-1">• ¡El candidato aplicó!</span>
+                                    <div className="text-xs text-green-600 font-medium flex items-center gap-1">
+                                      <CheckCircle size={12} weight="fill" />
+                                      ¡El candidato aplicó a esta vacante!
+                                    </div>
                                   )}
                                 </div>
                               ) : (

@@ -87,13 +87,25 @@ export interface AdminCandidateDetail extends Omit<AdminCandidate, 'total_educac
 
 export const adminCandidateService = {
   /**
-   * Obtener todos los candidatos
+   * Obtener todos los candidatos con paginación
    */
   async getAllCandidates(filters?: {
     search?: string
     ubicacion?: string
     profesion?: string
-  }): Promise<AdminCandidate[]> {
+    habilidad_id?: number
+    fecha_desde?: string
+    fecha_hasta?: string
+    min_experiencia?: number
+    page?: number
+    per_page?: number
+  }): Promise<{
+    data: AdminCandidate[]
+    total: number
+    per_page: number
+    current_page: number
+    last_page: number
+  }> {
     try {
       const params = new URLSearchParams()
       
@@ -109,14 +121,44 @@ export const adminCandidateService = {
         params.append('profesion', filters.profesion)
       }
 
+      if (filters?.habilidad_id) {
+        params.append('habilidad_id', filters.habilidad_id.toString())
+      }
+
+      if (filters?.fecha_desde) {
+        params.append('fecha_desde', filters.fecha_desde)
+      }
+
+      if (filters?.fecha_hasta) {
+        params.append('fecha_hasta', filters.fecha_hasta)
+      }
+
+      if (filters?.min_experiencia !== undefined && filters.min_experiencia > 0) {
+        params.append('min_experiencia', filters.min_experiencia.toString())
+      }
+
+      if (filters?.page) {
+        params.append('page', filters.page.toString())
+      }
+
+      if (filters?.per_page) {
+        params.append('per_page', filters.per_page.toString())
+      }
+
       const queryString = params.toString()
       const url = `${API_URL}/admin/candidates${queryString ? `?${queryString}` : ''}`
       
       console.log('🌐 [API] GET /admin/candidates', filters)
       const response = await axios.get(url, getAuthHeaders())
       
-      console.log('📦 [API] Candidatos recibidos:', response.data.data.length)
-      return response.data.data
+      console.log('📦 [API] Candidatos recibidos:', response.data.data.length, 'de', response.data.total)
+      return {
+        data: response.data.data,
+        total: response.data.total || response.data.data.length,
+        per_page: response.data.per_page || 50,
+        current_page: response.data.current_page || 1,
+        last_page: response.data.last_page || 1
+      }
     } catch (error: any) {
       console.error('❌ [API ERROR] Error al obtener candidatos:', error.response?.data || error.message)
       throw error
@@ -143,15 +185,20 @@ export const adminCandidateService = {
   },
 
   /**
-   * Exportar candidatos a CSV
+   * Exportar candidatos (CSV, Excel o PDF)
    */
-  async exportCandidates(filters?: {
+  async exportCandidates(format: 'csv' | 'excel' | 'pdf', filters?: {
     search?: string
     ubicacion?: string
     profesion?: string
+    habilidad_id?: number
+    fecha_desde?: string
+    fecha_hasta?: string
+    min_experiencia?: number
   }): Promise<Blob> {
     try {
       const params = new URLSearchParams()
+      params.append('format', format)
       
       if (filters?.search) {
         params.append('search', filters.search)
@@ -165,19 +212,83 @@ export const adminCandidateService = {
         params.append('profesion', filters.profesion)
       }
 
+      if (filters?.habilidad_id) {
+        params.append('habilidad_id', filters.habilidad_id.toString())
+      }
+
+      if (filters?.fecha_desde) {
+        params.append('fecha_desde', filters.fecha_desde)
+      }
+
+      if (filters?.fecha_hasta) {
+        params.append('fecha_hasta', filters.fecha_hasta)
+      }
+
+      if (filters?.min_experiencia !== undefined && filters.min_experiencia > 0) {
+        params.append('min_experiencia', filters.min_experiencia.toString())
+      }
+
       const queryString = params.toString()
-      const url = `${API_URL}/admin/candidates/export${queryString ? `?${queryString}` : ''}`
+      const url = `${API_URL}/admin/candidates/export?${queryString}`
       
-      console.log('🌐 [API] GET /admin/candidates/export')
+      console.log('🌐 [API] GET /admin/candidates/export', format, url)
       const response = await axios.get(url, {
         ...getAuthHeaders(),
-        responseType: 'blob'
+        responseType: format === 'pdf' ? 'text' : 'blob', // PDF es HTML, otros son binarios
+        timeout: 120000 // 120 segundos para archivos grandes
       })
       
-      console.log('📦 [API] CSV generado correctamente')
+      // Para PDF, retornar el texto HTML directamente
+      if (format === 'pdf') {
+        console.log('📦 [API] HTML generado correctamente para PDF')
+        return new Blob([response.data], { type: 'text/html; charset=utf-8' })
+      }
+      
+      // Verificar que la respuesta sea un blob válido para Excel/CSV
+      if (!response.data || !(response.data instanceof Blob)) {
+        throw new Error('La respuesta no es un archivo válido')
+      }
+      
+      console.log('📦 [API] Archivo generado correctamente:', format, 'Size:', response.data.size, 'bytes')
       return response.data
     } catch (error: any) {
       console.error('❌ [API ERROR] Error al exportar candidatos:', error.response?.data || error.message)
+      throw error
+    }
+  },
+
+  /**
+   * Analizar compatibilidad de candidato (SIN IA - solo matching de habilidades)
+   */
+  async analyzeCompatibility(candidateId: number, applicationId?: string, jobId?: number): Promise<{
+    success: boolean
+    data: {
+      candidate_id: number
+      application_id?: string
+      job_id?: number
+      skills: string[]
+      experience: string[]
+      matchScore: number
+      strengths: string[]
+      concerns: string[]
+      recommendation: string
+      matched_skills: string[]
+      missing_skills: string[]
+      total_required_skills: number
+      matched_count: number
+      analyzed_at: string
+    }
+  }> {
+    try {
+      const url = `${API_URL}/admin/candidates/${candidateId}/analyze`
+      const response = await axios.post(url, {
+        application_id: applicationId,
+        job_id: jobId
+      }, getAuthHeaders())
+
+      return response.data
+    } catch (error: any) {
+      console.error('❌ [API ERROR] Error al analizar candidato:', error.response?.data || error.message)
       throw error
     }
   }

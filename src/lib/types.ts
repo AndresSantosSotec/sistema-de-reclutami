@@ -196,6 +196,8 @@ export interface TalentBankCandidate extends Candidate {
   suggestedJobs?: string[]
   matchingSkills?: string[]
   notes?: string
+  location?: string
+  profession?: string
 }
 
 export type PermissionModule = 
@@ -250,16 +252,22 @@ export interface AIAnalysis {
 }
 
 export interface PsychometricTest {
-  id: string
-  applicationId: string
-  candidateId: string
-  testName: string
-  externalUrl?: string
-  sentAt: string
-  completedAt?: string
-  results?: string
-  score?: number
-  status: 'pending' | 'sent' | 'in-progress' | 'completed'
+  id: number
+  postulante_id: number
+  job_offer_id?: number
+  test_link: string
+  sent_at?: string
+  completed_at?: string
+  results_link?: string
+  status: 'pending' | 'sent' | 'completed' | 'expired'
+  created_at?: string
+  updated_at?: string
+  // Propiedades adicionales para UI
+  job_offer?: {
+    id: number
+    titulo: string
+    empresa: string
+  }
 }
 
 export interface RecruitmentMetrics {
