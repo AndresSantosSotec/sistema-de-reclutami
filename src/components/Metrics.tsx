@@ -252,7 +252,7 @@ export function Metrics() {
     <div className="space-y-6">
       {/* Header con selector de período y botones de exportación */}
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Métricas y Reportes</h1>
             <p className="text-muted-foreground mt-2">
@@ -956,10 +956,10 @@ export function Metrics() {
             <div className="flex-1 space-y-2">
               <p className="text-sm font-medium">Reporte en PDF</p>
               <p className="text-xs text-muted-foreground">
-                Reporte completo en formato PDF con todas las métricas y gráficos
+                Reporte ejecutivo en formato PDF para directivos
               </p>
               <Button
-                onClick={() => handleExportReport('pdf')}
+                onClick={() => setShowReportTypeDialog(true)}
                 variant="outline"
                 className="w-full gap-2"
                 disabled={!!exporting}

@@ -239,32 +239,32 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
         </header>
 
         {/* Header móvil */}
-        <header className="md:hidden bg-card border-b border-border p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+        <header className="md:hidden bg-card border-b border-border p-3 sm:p-4 sticky top-0 z-40">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center flex-shrink-0">
                 <Briefcase size={16} weight="duotone" className="text-primary-foreground" />
               </div>
-              <h2 className="font-semibold">Coosajer Empleos</h2>
+              <h2 className="font-semibold text-sm sm:text-base truncate">Coosajer Empleos</h2>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <NotificationBell onNavigate={onNavigate} />
-              <Button variant="ghost" size="sm" onClick={onLogout}>
-                <SignOut size={20} />
+              <Button variant="ghost" size="sm" onClick={onLogout} className="h-8 w-8 p-0">
+                <SignOut size={18} />
               </Button>
             </div>
           </div>
         </header>
 
-        <div className="md:hidden border-b border-border bg-card">
-          <div className="flex overflow-x-auto p-2 gap-1">
+        <div className="md:hidden border-b border-border bg-card sticky top-[57px] z-30 shadow-sm">
+          <div className="flex overflow-x-auto p-2 gap-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {loadingPermissions && userRole === 'custom' ? (
               // Skeleton para móvil
               <>
-                <Skeleton className="h-8 w-24 flex-shrink-0" />
-                <Skeleton className="h-8 w-24 flex-shrink-0" />
-                <Skeleton className="h-8 w-24 flex-shrink-0" />
-                <Skeleton className="h-8 w-24 flex-shrink-0" />
+                <Skeleton className="h-9 w-20 flex-shrink-0" />
+                <Skeleton className="h-9 w-20 flex-shrink-0" />
+                <Skeleton className="h-9 w-20 flex-shrink-0" />
+                <Skeleton className="h-9 w-20 flex-shrink-0" />
               </>
             ) : (
               filteredNavItems.map(item => (
@@ -273,21 +273,23 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
                   variant={currentView === item.id ? 'secondary' : 'ghost'}
                   size="sm"
                   className={cn(
-                    'flex-shrink-0 gap-2',
-                    currentView === item.id && 'bg-primary/10 text-primary'
+                    'flex-shrink-0 gap-1.5 h-9 px-3 text-xs sm:text-sm',
+                    currentView === item.id && 'bg-primary/10 text-primary font-medium'
                   )}
                   onClick={() => onNavigate(item.id)}
                 >
                   <item.icon size={16} weight={currentView === item.id ? 'fill' : 'regular'} />
-                  {item.label}
+                  <span className="whitespace-nowrap">{item.label}</span>
                 </Button>
               ))
             )}
           </div>
         </div>
 
-        <main className="flex-1 overflow-auto p-4 md:p-8">
-          {children}
+        <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 lg:p-8">
+          <div className="max-w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -8,6 +8,30 @@
   
   body {
     font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Mejoras para móviles */
+  @media (max-width: 640px) {
+    body {
+      font-size: 14px;
+    }
+    
+    /* Mejorar legibilidad de textos en móvil */
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.3;
+    }
+    
+    /* Asegurar que los inputs sean táctiles */
+    input, textarea, select, button {
+      min-height: 44px; /* Tamaño mínimo recomendado para touch */
+    }
+    
+    /* Mejorar scroll en móviles */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
   }
 }
 

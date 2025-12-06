@@ -210,87 +210,155 @@ export function Applications() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Candidato</TableHead>
-                <TableHead>Oferta</TableHead>
-                <TableHead>Fecha de Aplicación</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acción</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredApplications.length === 0 ? (
+          {/* Vista de tabla para desktop */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                    {applications.length === 0 
-                      ? 'No hay postulaciones aún.' 
-                      : 'No se encontraron postulaciones con los filtros aplicados.'}
-                  </TableCell>
+                  <TableHead>Candidato</TableHead>
+                  <TableHead>Oferta</TableHead>
+                  <TableHead>Fecha de Aplicación</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead className="text-right">Acción</TableHead>
                 </TableRow>
-              ) : (
-                filteredApplications.map((app) => {
-                  const candidate = candidates.find(c => c.id === app.candidateId)
-                  const job = jobs.find(j => j.id === app.jobId)
-                  
-                  return (
-                    <TableRow key={app.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User size={20} weight="duotone" className="text-primary" />
+              </TableHeader>
+              <TableBody>
+                {filteredApplications.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      {applications.length === 0 
+                        ? 'No hay postulaciones aún.' 
+                        : 'No se encontraron postulaciones con los filtros aplicados.'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredApplications.map((app) => {
+                    const candidate = candidates.find(c => c.id === app.candidateId)
+                    const job = jobs.find(j => j.id === app.jobId)
+                    
+                    return (
+                      <TableRow key={app.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <User size={20} weight="duotone" className="text-primary" />
+                            </div>
+                            <div>
+                              <div className="font-medium">{candidate?.name || 'N/A'}</div>
+                              <div className="text-sm text-muted-foreground">{candidate?.email || 'N/A'}</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="font-medium">{candidate?.name || 'N/A'}</div>
-                            <div className="text-sm text-muted-foreground">{candidate?.email || 'N/A'}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{job?.title || 'N/A'}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar size={16} />
+                            {formatDate(app.appliedAt)}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={statusColors[app.status]} variant="outline">
+                            {statusLabels[app.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewDetails(app)}
+                            >
+                              Ver Detalles
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteApplication(app.id)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash size={16} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Vista de cards para móvil */}
+          <div className="md:hidden space-y-3">
+            {filteredApplications.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                {applications.length === 0 
+                  ? 'No hay postulaciones aún.' 
+                  : 'No se encontraron postulaciones con los filtros aplicados.'}
+              </div>
+            ) : (
+              filteredApplications.map((app) => {
+                const candidate = candidates.find(c => c.id === app.candidateId)
+                const job = jobs.find(j => j.id === app.jobId)
+                
+                return (
+                  <Card key={app.id} className="border-border/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <User size={20} weight="duotone" className="text-primary" />
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{job?.title || 'N/A'}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar size={16} />
-                          {formatDate(app.appliedAt)}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm mb-1">{candidate?.name || 'N/A'}</div>
+                          <div className="text-xs text-muted-foreground truncate">{candidate?.email || 'N/A'}</div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={statusColors[app.status]} variant="outline">
+                        <Badge className={`${statusColors[app.status]} text-xs flex-shrink-0`} variant="outline">
                           {statusLabels[app.status]}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewDetails(app)}
-                          >
-                            Ver Detalles
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDeleteApplication(app.id)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash size={16} />
-                          </Button>
+                      </div>
+                      
+                      <div className="space-y-2 mb-3">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Briefcase size={14} className="text-muted-foreground flex-shrink-0" />
+                          <span className="truncate">{job?.title || 'N/A'}</span>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
-              )}
-            </TableBody>
-          </Table>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Calendar size={14} className="flex-shrink-0" />
+                          {formatDate(app.appliedAt)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 pt-2 border-t border-border">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewDetails(app)}
+                          className="flex-1 text-xs h-8"
+                        >
+                          Ver Detalles
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteApplication(app.id)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })
+            )}
+          </div>
         </CardContent>
       </Card>
 
       <Sheet open={!!selectedApplication} onOpenChange={(open) => !open && handleCloseSheet()}>
-        <SheetContent className="sm:max-w-2xl w-full p-0">
+        <SheetContent className="sm:max-w-2xl w-full max-w-full p-0 overflow-y-auto">
           <ScrollArea className="h-full">
             <div className="p-6">
               <SheetHeader className="mb-6">

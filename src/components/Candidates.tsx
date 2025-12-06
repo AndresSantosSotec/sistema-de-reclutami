@@ -274,7 +274,7 @@ export function Candidates() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Todos los Candidatos</CardTitle>
                 <CardDescription>
@@ -469,7 +469,7 @@ export function Candidates() {
       </Card>
 
       <Sheet open={!!selectedCandidateId} onOpenChange={(open) => !open && setSelectedCandidateId(null)}>
-        <SheetContent className="sm:max-w-2xl w-full p-0">
+        <SheetContent className="sm:max-w-2xl w-full max-w-full p-0 overflow-y-auto">
           <ScrollArea className="h-full">
             <div className="p-6">
               <SheetHeader className="mb-6">
