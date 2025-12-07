@@ -49,6 +49,7 @@ import evalationService from '@/lib/evalationService'
 import type { Evaluation } from '@/lib/types'
 import { CandidateCard } from './candidates/CandidateCard'
 import { PsychometricTestSection } from './candidates/PsychometricTestSection'
+import { AIAnalysisTab } from './candidates/AIAnalysisTab'
 
 export function Candidates() {
   const { candidates, loading, fetchCandidates, exportCandidates, pagination } = useCandidates()
@@ -940,19 +941,10 @@ export function Candidates() {
                     </TabsContent>
 
                     <TabsContent value="ia" className="space-y-4">
-                      <div className="text-center py-12">
-                        <Brain size={48} className="mx-auto text-muted-foreground mb-4" weight="duotone" />
-                        <p className="text-muted-foreground">
-                          Análisis con IA no disponible
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          Analiza el perfil del candidato con inteligencia artificial
-                        </p>
-                        <Button className="mt-4" variant="outline">
-                          <Brain size={18} className="mr-2" />
-                          Analizar Candidato
-                        </Button>
-                      </div>
+                      <AIAnalysisTab 
+                        candidateId={selectedCandidateDetail.id}
+                        candidateName={selectedCandidateDetail.nombre}
+                      />
                     </TabsContent>
 
                     <TabsContent value="psicometricas" className="space-y-4">
