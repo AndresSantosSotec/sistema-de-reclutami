@@ -26,14 +26,14 @@ export function useTalentBank(initialFilters?: UseTalentBankFilters) {
   }) => {
     // Evitar llamadas duplicadas
     if (isLoadingRef.current) {
-      console.log('⏳ [useTalentBank] Ya hay una carga en progreso, ignorando...')
+      // console.log('⏳ [useTalentBank] Ya hay una carga en progreso, ignorando...')
       return
     }
 
     // Verificar que hay token antes de hacer la petición
     const token = localStorage.getItem('admin_token')
     if (!token) {
-      console.log('⏳ [useTalentBank] No hay token, esperando autenticación...')
+      // console.log('⏳ [useTalentBank] No hay token, esperando autenticación...')
       setLoading(false)
       setTalentBank([])
       return
@@ -44,9 +44,9 @@ export function useTalentBank(initialFilters?: UseTalentBankFilters) {
     setError(null)
     
     try {
-      console.log('🔄 [useTalentBank] Cargando banco de talento...', filters)
+      // console.log('🔄 [useTalentBank] Cargando banco de talento...', filters)
       const response = await talentBankService.getAll(filters)
-      console.log('✅ [useTalentBank] Datos recibidos:', response.data?.length || 0, 'de', response.total, 'candidatos')
+      // console.log('✅ [useTalentBank] Datos recibidos:', response.data?.length || 0, 'de', response.total, 'candidatos')
       setTalentBank(response.data || [])
       setPagination({
         total: response.total,
@@ -132,7 +132,7 @@ export function useTalentBank(initialFilters?: UseTalentBankFilters) {
 
   // Función de refetch que siempre recarga
   const refetch = useCallback(async (filters?: UseTalentBankFilters) => {
-    console.log('🔄 [useTalentBank] Refetch solicitado')
+    // console.log('🔄 [useTalentBank] Refetch solicitado')
     await fetchTalentBank(filters)
   }, [fetchTalentBank])
 

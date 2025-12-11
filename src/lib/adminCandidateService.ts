@@ -57,6 +57,7 @@ export interface AdminCandidateDetail extends Omit<AdminCandidate, 'total_educac
     actualmente_trabajando: boolean
   }>
   habilidades: Array<{
+    id: number
     nombre: string
     nivel: string
   }>
@@ -84,6 +85,7 @@ export interface AdminCandidateDetail extends Omit<AdminCandidate, 'total_educac
     fecha_subida: string
   }>
 }
+
 
 export const adminCandidateService = {
   /**
@@ -148,10 +150,10 @@ export const adminCandidateService = {
       const queryString = params.toString()
       const url = `${API_URL}/admin/candidates${queryString ? `?${queryString}` : ''}`
       
-      console.log('🌐 [API] GET /admin/candidates', filters)
+      // console.log('🌐 [API] GET /admin/candidates', filters)
       const response = await axios.get(url, getAuthHeaders())
       
-      console.log('📦 [API] Candidatos recibidos:', response.data.data.length, 'de', response.data.total)
+      // console.log('📦 [API] Candidatos recibidos:', response.data.data.length, 'de', response.data.total)
       return {
         data: response.data.data,
         total: response.data.total || response.data.data.length,
@@ -170,13 +172,13 @@ export const adminCandidateService = {
    */
   async getCandidateDetail(id: number): Promise<AdminCandidateDetail> {
     try {
-      console.log('🌐 [API] GET /admin/candidates/' + id)
+      // console.log('🌐 [API] GET /admin/candidates/' + id)
       const response = await axios.get(
         `${API_URL}/admin/candidates/${id}`,
         getAuthHeaders()
       )
       
-      console.log('📦 [API] Detalles del candidato recibidos:', response.data.data)
+      // console.log('📦 [API] Detalles del candidato recibidos:', response.data.data)
       return response.data.data
     } catch (error: any) {
       console.error('❌ [API ERROR]:', error.response?.data || error.message)
@@ -231,7 +233,7 @@ export const adminCandidateService = {
       const queryString = params.toString()
       const url = `${API_URL}/admin/candidates/export?${queryString}`
       
-      console.log('🌐 [API] GET /admin/candidates/export', format, url)
+      // console.log('🌐 [API] GET /admin/candidates/export', format, url)
       const response = await axios.get(url, {
         ...getAuthHeaders(),
         responseType: format === 'pdf' ? 'text' : 'blob', // PDF es HTML, otros son binarios
@@ -240,7 +242,7 @@ export const adminCandidateService = {
       
       // Para PDF, retornar el texto HTML directamente
       if (format === 'pdf') {
-        console.log('📦 [API] HTML generado correctamente para PDF')
+        // console.log('📦 [API] HTML generado correctamente para PDF')
         return new Blob([response.data], { type: 'text/html; charset=utf-8' })
       }
       
@@ -249,7 +251,7 @@ export const adminCandidateService = {
         throw new Error('La respuesta no es un archivo válido')
       }
       
-      console.log('📦 [API] Archivo generado correctamente:', format, 'Size:', response.data.size, 'bytes')
+      // console.log('📦 [API] Archivo generado correctamente:', format, 'Size:', response.data.size, 'bytes')
       return response.data
     } catch (error: any) {
       console.error('❌ [API ERROR] Error al exportar candidatos:', error.response?.data || error.message)

@@ -34,7 +34,7 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
   
   // Estados para la paginación
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(10) // Número de elementos por página
+  const [itemsPerPage, setItemsPerPage] = useState(10) // Número de elementos por página
   
   // Filtrar trabajos según los filtros
   const filteredJobs = jobs.filter(job => {
@@ -87,6 +87,12 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
       [filterName]: value
     }))
     setCurrentPage(1) // Resetear a la primera página al cambiar filtros
+  }
+
+  // Manejar cambio de items por página
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value))
+    setCurrentPage(1) // Resetear a la primera página
   }
   
   // Limpiar todos los filtros
@@ -940,9 +946,39 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
             </TableBody>
           </Table>
           
-          {/* Paginación */}
-          {totalPages > 1 && (
-            <div className="mt-6">
+          {/* Paginación Mejorada */}
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Selector de items por página */}
+            <div className="flex items-center gap-2">
+              <Label htmlFor="items-per-page" className="text-sm text-muted-foreground whitespace-nowrap">
+                Mostrar:
+              </Label>
+              <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+                <SelectTrigger id="items-per-page" className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                por página
+              </span>
+            </div>
+
+            {/* Información de paginación */}
+            <div className="text-sm text-muted-foreground">
+              Mostrando <span className="font-semibold text-foreground">{indexOfFirstItem + 1}</span> - <span className="font-semibold text-foreground">{Math.min(indexOfLastItem, filteredJobs.length)}</span> de <span className="font-semibold text-foreground">{filteredJobs.length}</span> ofertas
+              {filteredJobs.length !== jobs.length && (
+                <span className="ml-1">(filtrado de {jobs.length} total)</span>
+              )}
+            </div>
+
+            {/* Controles de paginación */}
+            {totalPages > 1 && (
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
@@ -992,12 +1028,8 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
-              
-              <div className="text-sm text-muted-foreground text-center mt-2">
-                Mostrando {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, jobs.length)} de {jobs.length} ofertas
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

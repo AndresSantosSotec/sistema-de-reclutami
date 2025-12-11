@@ -100,6 +100,29 @@ if (import.meta.env.DEV) {
   })
 }
 
+// Aplicar tema antes de renderizar (backup por si el script inline no se ejecutó)
+const applyInitialTheme = () => {
+  const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+  const theme = savedTheme || (prefersDark ? 'dark' : 'light')
+  const root = document.documentElement
+  
+  if (theme === 'dark') {
+    root.classList.add('dark')
+    root.setAttribute('data-appearance', 'dark')
+    root.setAttribute('data-theme', 'dark')
+    root.style.colorScheme = 'dark'
+  } else {
+    root.classList.remove('dark')
+    root.setAttribute('data-appearance', 'light')
+    root.setAttribute('data-theme', 'light')
+    root.style.colorScheme = 'light'
+  }
+}
+
+// Aplicar tema inmediatamente (backup)
+applyInitialTheme()
+
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary FallbackComponent={ErrorFallback}>
     <App />

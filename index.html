@@ -4,13 +4,44 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Coosajer Empleos - Plataforma de Reclutamiento</title>
+    <title>Oportunidades Coosanjer - Plataforma de Reclutamiento</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="/src/main.css" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <script>
+        // Aplicar tema ANTES de que React renderice para evitar flash
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+                const root = document.documentElement;
+                const body = document.body;
+                
+                if (theme === 'dark') {
+                    root.classList.add('dark');
+                    root.setAttribute('data-appearance', 'dark');
+                    root.setAttribute('data-theme', 'dark');
+                    root.style.colorScheme = 'dark';
+                    if (body) body.classList.add('dark');
+                } else {
+                    root.classList.remove('dark');
+                    root.setAttribute('data-appearance', 'light');
+                    root.setAttribute('data-theme', 'light');
+                    root.style.colorScheme = 'light';
+                    if (body) body.classList.remove('dark');
+                }
+                
+                // Forzar aplicación inmediata
+                root.style.setProperty('--theme-applied', theme);
+            } catch (e) {
+                console.error('Error applying initial theme:', e);
+            }
+        })();
+    </script>
 </head>
 
 <body>

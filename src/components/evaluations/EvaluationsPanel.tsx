@@ -18,7 +18,7 @@ import {
   Plus, ClipboardText, VideoCamera, CheckCircle, Clock, User, 
   MagnifyingGlass, CaretUpDown, Check, Funnel, X, CaretLeft, 
   CaretRight, Calendar, ArrowsClockwise, Eye, List, SquaresFour,
-  Phone, MapPin, Note, CalendarBlank, Timer, Warning, FileText
+  Phone, MapPin, Note, CalendarBlank, Timer, Warning, FileText, Trash
 } from '@phosphor-icons/react'
 import type { Evaluation, EvaluationType, EvaluationMode, Application, Candidate } from '@/lib/types'
 import { evaluationTypeLabels, evaluationModeLabels, formatDateTime } from '@/lib/constants'
@@ -32,6 +32,7 @@ interface EvaluationsProps {
   candidates: Candidate[]
   onAddEvaluation: (evaluation: Omit<Evaluation, 'id' | 'createdAt'>) => void
   onUpdateEvaluation: (id: string, evaluation: Partial<Evaluation>) => void
+  onDeleteEvaluation: (id: string) => void
   onRefresh?: () => void
 }
 
@@ -45,6 +46,7 @@ export function EvaluationsPanel({
   candidates, 
   onAddEvaluation, 
   onUpdateEvaluation,
+  onDeleteEvaluation,
   onRefresh 
 }: EvaluationsProps) {
   // Estados principales
@@ -67,6 +69,11 @@ export function EvaluationsPanel({
   const [evaluationToComplete, setEvaluationToComplete] = useState<Evaluation | null>(null)
   const [completeResult, setCompleteResult] = useState('')
   const [completeObservations, setCompleteObservations] = useState('')
+  
+  // Diálogo de eliminar evaluación
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [evaluationToDelete, setEvaluationToDelete] = useState<Evaluation | null>(null)
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('')
@@ -309,6 +316,28 @@ export function EvaluationsPanel({
     setDetailSheetOpen(true)
   }
 
+  const openDeleteDialog = (evaluation: Evaluation) => {
+    setEvaluationToDelete(evaluation)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDelete = async () => {
+    if (!evaluationToDelete) return
+    if (isDeleting) return
+    
+    try {
+      setIsDeleting(true)
+      await onDeleteEvaluation(evaluationToDelete.id)
+      setDeleteDialogOpen(false)
+      setEvaluationToDelete(null)
+      toast.success('Evaluación eliminada exitosamente')
+    } catch {
+      // Error manejado externamente
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   const clearFilters = () => {
     setSearchTerm('')
     setStatusFilter('all')
@@ -455,17 +484,44 @@ export function EvaluationsPanel({
             </div>
             
             {!evaluation.completedAt && (
-              <div className="mt-3 pt-3 border-t">
+              <div className="mt-3 pt-3 border-t flex gap-2">
                 <Button 
                   size="sm" 
-                  className="w-full"
+                  className="flex-1"
                   onClick={(e) => {
                     e.stopPropagation()
                     openCompleteDialog(evaluation)
                   }}
                 >
                   <CheckCircle size={14} className="mr-2" />
-                  Completar Evaluación
+                  Completar
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openDeleteDialog(evaluation)
+                  }}
+                >
+                  <Trash size={14} />
+                </Button>
+              </div>
+            )}
+            {evaluation.completedAt && (
+              <div className="mt-3 pt-3 border-t">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openDeleteDialog(evaluation)
+                  }}
+                >
+                  <Trash size={14} className="mr-2" />
+                  Eliminar
                 </Button>
               </div>
             )}
@@ -1113,6 +1169,7 @@ export function EvaluationsPanel({
                                 e.stopPropagation()
                                 openDetailSheet(evaluation)
                               }}
+                              title="Ver detalles"
                             >
                               <Eye size={16} />
                             </Button>
@@ -1124,11 +1181,24 @@ export function EvaluationsPanel({
                                   e.stopPropagation()
                                   openCompleteDialog(evaluation)
                                 }}
+                                title="Completar evaluación"
                               >
                                 <CheckCircle size={16} className="mr-1" />
                                 Completar
                               </Button>
                             )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openDeleteDialog(evaluation)
+                              }}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              title="Eliminar evaluación"
+                            >
+                              <Trash size={16} />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1138,19 +1208,28 @@ export function EvaluationsPanel({
               </TableBody>
             </Table>
 
-            {/* Paginación */}
+            {/* Paginación - Siempre visible si hay más de una página */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                <p className="text-sm text-muted-foreground">
-                  Página {currentPage} de {totalPages} ({filteredEvaluations.length} evaluaciones)
-                </p>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando <span className="font-semibold text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-semibold text-foreground">{Math.min(currentPage * itemsPerPage, filteredEvaluations.length)}</span> de <span className="font-semibold text-foreground">{filteredEvaluations.length}</span> evaluaciones
+                  </p>
+                  {filteredEvaluations.length !== evaluations.length && (
+                    <Badge variant="secondary" className="text-xs">
+                      Filtrado de {evaluations.length} total
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
+                    title="Primera página"
                   >
+                    <CaretLeft size={16} className="mr-1" />
                     Primera
                   </Button>
                   <Button
@@ -1158,14 +1237,22 @@ export function EvaluationsPanel({
                     size="sm"
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
+                    title="Página anterior"
                   >
                     <CaretLeft size={16} />
                   </Button>
+                  <div className="flex items-center gap-2 px-3 text-sm">
+                    <span className="text-muted-foreground">Página</span>
+                    <span className="font-semibold">{currentPage}</span>
+                    <span className="text-muted-foreground">de</span>
+                    <span className="font-semibold">{totalPages}</span>
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
+                    title="Página siguiente"
                   >
                     <CaretRight size={16} />
                   </Button>
@@ -1174,10 +1261,23 @@ export function EvaluationsPanel({
                     size="sm"
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
+                    title="Última página"
                   >
                     Última
+                    <CaretRight size={16} className="ml-1" />
                   </Button>
                 </div>
+              </div>
+            )}
+            {/* Mostrar info de paginación incluso si hay solo una página pero hay filtros */}
+            {totalPages === 1 && filteredEvaluations.length > 0 && (
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  Mostrando <span className="font-semibold text-foreground">{filteredEvaluations.length}</span> evaluación(es)
+                  {filteredEvaluations.length !== evaluations.length && (
+                    <span className="ml-2">de {evaluations.length} total</span>
+                  )}
+                </p>
               </div>
             )}
           </CardContent>
@@ -1218,30 +1318,69 @@ export function EvaluationsPanel({
             </div>
           )}
           
-          {/* Paginación para tarjetas */}
+          {/* Paginación para tarjetas - Mejorada */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center mt-6 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                <CaretLeft size={16} />
-                Anterior
-              </Button>
-              <span className="text-sm text-muted-foreground px-4">
-                Página {currentPage} de {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Siguiente
-                <CaretRight size={16} />
-              </Button>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                Mostrando <span className="font-semibold text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-semibold text-foreground">{Math.min(currentPage * itemsPerPage, filteredEvaluations.length)}</span> de <span className="font-semibold text-foreground">{filteredEvaluations.length}</span> evaluaciones
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  title="Primera página"
+                >
+                  <CaretLeft size={16} className="mr-1" />
+                  Primera
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  title="Página anterior"
+                >
+                  <CaretLeft size={16} />
+                </Button>
+                <div className="flex items-center gap-2 px-3 text-sm">
+                  <span className="text-muted-foreground">Página</span>
+                  <span className="font-semibold">{currentPage}</span>
+                  <span className="text-muted-foreground">de</span>
+                  <span className="font-semibold">{totalPages}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  title="Página siguiente"
+                >
+                  <CaretRight size={16} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  title="Última página"
+                >
+                  Última
+                  <CaretRight size={16} className="ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+          {/* Info de paginación para tarjetas cuando hay solo una página */}
+          {totalPages === 1 && filteredEvaluations.length > 0 && (
+            <div className="flex items-center justify-center mt-6 pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Mostrando <span className="font-semibold text-foreground">{filteredEvaluations.length}</span> evaluación(es)
+                {filteredEvaluations.length !== evaluations.length && (
+                  <span className="ml-2">de {evaluations.length} total</span>
+                )}
+              </p>
             </div>
           )}
         </div>
@@ -1382,18 +1521,34 @@ export function EvaluationsPanel({
                     )}
                     
                     {/* Acciones */}
-                    {!selectedEvaluation.completedAt && (
+                    <div className="flex gap-2">
+                      {!selectedEvaluation.completedAt && (
+                        <Button 
+                          className="flex-1" 
+                          onClick={() => {
+                            setDetailSheetOpen(false)
+                            openCompleteDialog(selectedEvaluation)
+                          }}
+                        >
+                          <CheckCircle size={18} className="mr-2" />
+                          Completar Evaluación
+                        </Button>
+                      )}
                       <Button 
-                        className="w-full" 
+                        variant="outline"
+                        className={cn(
+                          selectedEvaluation.completedAt ? "w-full" : "flex-1",
+                          "text-destructive hover:text-destructive hover:bg-destructive/10"
+                        )}
                         onClick={() => {
                           setDetailSheetOpen(false)
-                          openCompleteDialog(selectedEvaluation)
+                          openDeleteDialog(selectedEvaluation)
                         }}
                       >
-                        <CheckCircle size={18} className="mr-2" />
-                        Completar Evaluación
+                        <Trash size={18} className="mr-2" />
+                        Eliminar
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </ScrollArea>
               </>
@@ -1458,6 +1613,60 @@ export function EvaluationsPanel({
                 <>
                   <CheckCircle size={16} className="mr-2" />
                   Marcar como Completada
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para eliminar evaluación */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash size={20} className="text-destructive" />
+              Eliminar Evaluación
+            </DialogTitle>
+            <DialogDescription>
+              {evaluationToDelete && (
+                <>
+                  ¿Estás seguro de que deseas eliminar esta evaluación?
+                  <br />
+                  <span className="font-semibold mt-2 block">
+                    {evaluationTypeLabels[evaluationToDelete.type]} - {candidateMap.get(evaluationToDelete.candidateId)?.name}
+                  </span>
+                  {evaluationToDelete.scheduledDate && (
+                    <span className="text-sm text-muted-foreground block mt-1">
+                      Programada para: {evaluationToDelete.scheduledDate} {evaluationToDelete.scheduledTime && `a las ${evaluationToDelete.scheduledTime}`}
+                    </span>
+                  )}
+                  <span className="text-sm text-destructive font-medium block mt-2">
+                    Esta acción no se puede deshacer.
+                  </span>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete} 
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <ArrowsClockwise size={16} className="mr-2 animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <Trash size={16} className="mr-2" />
+                  Eliminar Evaluación
                 </>
               )}
             </Button>

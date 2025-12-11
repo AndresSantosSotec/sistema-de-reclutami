@@ -19,52 +19,52 @@ function TalentBankCardComponent({ candidate, onClick }: TalentBankCardProps) {
   return (
     <Card 
       key={candidate.id} 
-      className="hover:shadow-lg transition-all cursor-pointer" 
+      className="hover:shadow-lg transition-all cursor-pointer h-full flex flex-col" 
       onClick={() => onClick(candidate)}
     >
-      <CardHeader>
-        <div className="flex items-start gap-4">
-          <Avatar className="w-16 h-16 flex-shrink-0">
+      <CardHeader className="pb-3 sm:pb-4">
+        <div className="flex items-start gap-2 sm:gap-3">
+          <Avatar className="w-12 h-12 sm:w-14 sm:h-16 flex-shrink-0">
             <AvatarImage src={candidate.avatar} alt={candidate.name} loading="lazy" />
-            <AvatarFallback className="text-lg bg-primary/10 text-primary">
+            <AvatarFallback className="text-sm sm:text-base bg-primary/10 text-primary">
               {getInitials(candidate.name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg truncate">{candidate.name}</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-              <EnvelopeSimple size={14} />
-              <span className="truncate">{candidate.email}</span>
+            <CardTitle className="text-base sm:text-lg truncate leading-tight">{candidate.name}</CardTitle>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground mt-1">
+              <EnvelopeSimple size={12} className="flex-shrink-0 sm:w-3.5 sm:h-3.5" />
+              <span className="truncate break-all">{candidate.email}</span>
             </div>
             {candidate.phone && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                <Phone size={14} />
+              <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground mt-1">
+                <Phone size={12} className="flex-shrink-0 sm:w-3.5 sm:h-3.5" />
                 <span className="truncate">{candidate.phone}</span>
               </div>
             )}
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2 sm:space-y-3 pt-0 flex-1 flex flex-col">
         {candidate.skills && candidate.skills.length > 0 && (
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2">Habilidades</p>
+          <div className="flex-1">
+            <p className="text-xs font-medium text-muted-foreground mb-1.5 sm:mb-2">Habilidades</p>
             <div className="flex flex-wrap gap-1">
               {candidate.skills.slice(0, 4).map((skill, idx) => (
-                <Badge key={`${candidate.id}-skill-${idx}`} variant="secondary" className="text-xs">
-                  {skill}
+                <Badge key={`${candidate.id}-skill-${idx}`} variant="secondary" className="text-xs px-1.5 sm:px-2 py-0.5">
+                  <span className="truncate max-w-[100px] sm:max-w-none">{skill}</span>
                 </Badge>
               ))}
               {candidate.skills.length > 4 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs px-1.5 sm:px-2 py-0.5">
                   +{candidate.skills.length - 4}
                 </Badge>
               )}
             </div>
           </div>
         )}
-        <div className="pt-2 border-t">
-          <p className="text-xs text-muted-foreground">
+        <div className="pt-2 border-t mt-auto">
+          <p className="text-xs text-muted-foreground truncate">
             Agregado: {formatDate(candidate.addedToTalentBank)}
           </p>
         </div>

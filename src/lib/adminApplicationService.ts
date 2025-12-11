@@ -125,13 +125,13 @@ export const adminApplicationService = {
    */
   async getApplicationDetail(id: number): Promise<AdminApplicationDetail> {
     try {
-      console.log('🌐 [API] GET /admin/applications/' + id)
+      // console.log('🌐 [API] GET /admin/applications/' + id)
       const response = await axios.get(
         `${API_URL}/admin/applications/${id}`,
         getAuthHeaders()
       )
       
-      console.log('📦 [API] Respuesta:', response.data)
+      // console.log('📦 [API] Respuesta:', response.data)
       return response.data.data
     } catch (error: any) {
       console.error('❌ [API ERROR]:', error.response?.data || error.message)

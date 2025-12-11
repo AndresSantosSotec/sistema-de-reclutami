@@ -241,6 +241,14 @@
     --color-bg: #ffffff;
     --color-bg-inset: var(--color-neutral-2);
     --color-bg-overlay: #ffffff;
+  }
+
+  #spark-app.dark,
+  #spark-app.dark-theme,
+  .dark #spark-app {
+    --color-bg: var(--color-neutral-1);
+    --color-bg-inset: #000000;
+    --color-bg-overlay: var(--color-neutral-3);
 
     /* Focus ring */
     --color-focus-ring: var(--color-accent-9);

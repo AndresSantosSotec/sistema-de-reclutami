@@ -62,7 +62,7 @@ export const aiAnalysisService = {
    */
   async analyzeCandidate(candidateId: number, forceRefresh = false): Promise<AIAnalysisResult> {
     try {
-      console.log('🤖 [AIAnalysis] Analizando candidato:', candidateId, { forceRefresh })
+      // console.log('🤖 [AIAnalysis] Analizando candidato:', candidateId, { forceRefresh })
       
       const response = await axios.post<AIAnalysisResponse>(
         `${API_URL}/admin/candidates/${candidateId}/ai-analyze`,
@@ -77,11 +77,11 @@ export const aiAnalysisService = {
         throw new Error(response.data.message || 'Error al analizar candidato')
       }
 
-      console.log('✅ [AIAnalysis] Análisis completado:', {
-        cached: response.data.cached,
-        score: response.data.data.puntuacion_general,
-        matches: response.data.data.job_matches.length
-      })
+      // console.log('✅ [AIAnalysis] Análisis completado:', {
+      //   cached: response.data.cached,
+      //   score: response.data.data.puntuacion_general,
+      //   matches: response.data.data.job_matches.length
+      // })
 
       return response.data.data
     } catch (error: any) {
@@ -123,7 +123,7 @@ export const aiAnalysisService = {
         `${API_URL}/admin/candidates/${candidateId}/ai-analysis`,
         getAuthHeaders()
       )
-      console.log('🗑️ [AIAnalysis] Caché limpiado para candidato:', candidateId)
+      // console.log('🗑️ [AIAnalysis] Caché limpiado para candidato:', candidateId)
     } catch (error: any) {
       console.error('❌ [AIAnalysis] Error al limpiar caché:', error.message)
     }

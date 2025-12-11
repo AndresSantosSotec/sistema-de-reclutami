@@ -12,7 +12,7 @@ export function useCategories() {
     // Verificar token antes de hacer petición
     const token = localStorage.getItem('admin_token')
     if (!token) {
-      console.log('⏳ [useCategories] No hay token, esperando autenticación...')
+      // console.log('⏳ [useCategories] No hay token, esperando autenticación...')
       setLoading(false)
       return
     }
@@ -20,10 +20,10 @@ export function useCategories() {
     setLoading(true)
     setError(null)
     try {
-      console.log('🔄 [useCategories] Cargando categorías...')
+      // console.log('🔄 [useCategories] Cargando categorías...')
       const data = await categoryService.getAllCategories()
       const mappedCategories = data.map(mapBackendCategoryToFrontend)
-      console.log('✅ [useCategories] Categorías cargadas:', mappedCategories.length)
+      // console.log('✅ [useCategories] Categorías cargadas:', mappedCategories.length)
       setCategories(mappedCategories)
     } catch (err: any) {
       console.error('❌ [useCategories] Error:', err.message)

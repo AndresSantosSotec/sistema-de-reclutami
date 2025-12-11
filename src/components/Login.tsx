@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Briefcase, Eye, EyeSlash } from '@phosphor-icons/react'
+import { Briefcase, Eye, EyeSlash, Moon, Sun } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { adminAuthService } from '@/lib/adminAuthService'
+import { useTheme } from '@/hooks/useTheme'
 
 interface LoginProps {
   onLogin: (email: string, userId: string) => void
@@ -17,6 +18,7 @@ export function Login({ onLogin }: LoginProps) {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const { theme, toggleTheme } = useTheme()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,6 +56,23 @@ export function Login({ onLogin }: LoginProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
+      {/* Toggle de tema en la esquina superior derecha */}
+      <div className="absolute top-4 right-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="h-9 w-9"
+          title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+        >
+          {theme === 'dark' ? (
+            <Sun size={18} className="text-yellow-500" />
+          ) : (
+            <Moon size={18} className="text-blue-500" />
+          )}
+        </Button>
+      </div>
+      
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -71,7 +90,7 @@ export function Login({ onLogin }: LoginProps) {
             </motion.div>
             <div>
               <CardTitle className="text-3xl font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Coosajer Empleos
+              Oportunidades Coosanjer
               </CardTitle>
               <CardDescription className="text-base mt-2">
                 Panel Administrativo de Reclutamiento

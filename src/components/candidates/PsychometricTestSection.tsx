@@ -63,8 +63,32 @@ export function PsychometricTestSection({
       return;
     }
 
+    if (!candidateId || candidateId <= 0) {
+      toast.error('Error: ID de candidato no válido');
+      return;
+    }
+
     try {
       setIsSending(true);
+      
+      // Validar URL antes de enviar
+      try {
+        new URL(testUrl);
+      } catch {
+        toast.error('Por favor ingresa una URL válida');
+        return;
+      }
+
+      // Log para debug
+      // console.log('📋 Enviando datos:', {
+      //   postulante_id: candidateId,
+      //   job_offer_id: jobOfferId,
+      //   test_link: testUrl,
+      //   candidateId_type: typeof candidateId,
+      //   jobOfferId_type: typeof jobOfferId,
+      //   testUrl_length: testUrl.length
+      // });
+
       const newTest = await psychometricTestService.sendTest({
         postulante_id: candidateId,
         job_offer_id: jobOfferId,
@@ -77,8 +101,25 @@ export function PsychometricTestSection({
       setTestUrl('');
       onTestsChange?.();
     } catch (error: any) {
-      console.error('Error sending test:', error);
-      toast.error(error.response?.data?.message || 'Error al enviar la prueba psicométrica');
+      console.error('Error sending psychometric test:', error);
+      
+      // Manejo específico de errores
+      if (error.response?.status === 422) {
+        const errors = error.response.data.errors;
+        if (errors?.postulante_id) {
+          toast.error('Error: El candidato especificado no existe o no es válido');
+        } else if (errors?.test_link) {
+          toast.error('Error: El enlace de la prueba no es válido');
+        } else {
+          toast.error(error.response.data.message || 'Error de validación en los datos');
+        }
+      } else if (error.response?.status === 404) {
+        toast.error('Error: Candidato no encontrado');
+      } else if (error.response?.status === 500) {
+        toast.error('Error interno del servidor. Por favor, intenta nuevamente');
+      } else {
+        toast.error(error.response?.data?.message || 'Error al enviar la prueba psicométrica');
+      }
     } finally {
       setIsSending(false);
     }

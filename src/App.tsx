@@ -38,8 +38,12 @@ import type {
   PsychometricTest
 } from './lib/types'
 import { toast } from 'sonner'
+import { useTheme } from './hooks/useTheme'
 
 function App() {
+  // Inicializar tema globalmente
+  useTheme()
+  
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authChecked, setAuthChecked] = useState(false) // Nuevo: saber si ya se verificó auth
   const [currentView, setCurrentView] = useState('dashboard')
@@ -65,7 +69,7 @@ function App() {
   
   // Estado de paginación para TalentBank
   const [talentBankPage, setTalentBankPage] = useState(1)
-  const [talentBankPerPage, setTalentBankPerPage] = useState(50)
+  const [talentBankPerPage, setTalentBankPerPage] = useState(10)
   
   // Evaluaciones - Conectadas al backend
   const [evaluations, setEvaluations] = useState<Evaluation[]>([])
@@ -138,10 +142,10 @@ function App() {
           await adminAuthService.me()
           setIsAuthenticated(true)
           setCurrentUser(user.email)
-          console.log('🔑 [App] Autenticación verificada')
+          // console.log('🔑 [App] Autenticación verificada')
         } catch (error) {
           // Token inválido, limpiar autenticación
-          console.log('❌ [App] Token inválido, limpiando auth')
+          // console.log('❌ [App] Token inválido, limpiando auth')
           adminAuthService.clearAuth()
           setIsAuthenticated(false)
           setCurrentUser('')
@@ -156,7 +160,7 @@ function App() {
   // Recargar TODOS los datos cuando se autentica exitosamente
   useEffect(() => {
     if (isAuthenticated && authChecked) {
-      console.log('🔄 [App] Autenticado, recargando todos los datos...')
+      // console.log('🔄 [App] Autenticado, recargando todos los datos...')
       // Pequeño delay para asegurar que el token está listo
       setTimeout(() => {
         refetchJobs?.()
@@ -292,14 +296,14 @@ function App() {
       // Importar el servicio de evaluaciones
       const evalationService = (await import('@/lib/evalationService')).default
 
-      console.log('🔄 [App] Creando evaluación con datos:', {
-        postulante_id: postulanteId,
-        application_id: evaluation.applicationId,
-        tipo: evaluation.type,
-        modalidad: evaluation.mode,
-        fecha: evaluation.scheduledDate,
-        hora: evaluation.scheduledTime,
-      })
+      // console.log('🔄 [App] Creando evaluación con datos:', {
+      //   postulante_id: postulanteId,
+      //   application_id: evaluation.applicationId,
+      //   tipo: evaluation.type,
+      //   modalidad: evaluation.mode,
+      //   fecha: evaluation.scheduledDate,
+      //   hora: evaluation.scheduledTime,
+      // })
 
       await evalationService.createEvaluation({
         postulante_id: postulanteId,
@@ -350,6 +354,28 @@ function App() {
     } catch (error: any) {
       console.error('Error al actualizar evaluación:', error)
       toast.error(error.response?.data?.message || 'Error al actualizar la evaluación')
+    }
+  }, [setEvaluations])
+
+  const handleDeleteEvaluation = useCallback(async (id: string) => {
+    try {
+      const evaluationId = parseInt(id)
+      if (isNaN(evaluationId)) {
+        toast.error('ID de evaluación inválido')
+        return
+      }
+
+      const evalationService = (await import('@/lib/evalationService')).default
+      await evalationService.deleteEvaluation(evaluationId)
+      
+      toast.success('Evaluación eliminada exitosamente')
+      
+      // Recargar evaluaciones
+      const updatedEvaluations = await evalationService.getEvaluations()
+      setEvaluations(updatedEvaluations)
+    } catch (error: any) {
+      console.error('Error al eliminar evaluación:', error)
+      toast.error(error.response?.data?.message || 'Error al eliminar la evaluación')
     }
   }, [setEvaluations])
 
@@ -593,6 +619,7 @@ function App() {
             candidates={candidates || []}
             onAddEvaluation={handleAddEvaluation}
             onUpdateEvaluation={handleUpdateEvaluation}
+            onDeleteEvaluation={handleDeleteEvaluation}
             onRefresh={reloadEvaluations}
           />
         )}

@@ -147,22 +147,22 @@ const evalationService = {
       const url = `${API_URL}/admin/evaluations`
       const headers = getAuthHeaders()
       
-      console.log('🔄 [evalationService] Creando evaluación:', {
-        url: url,
-        baseURL: API_URL,
-        endpoint: '/admin/evaluations',
-        fullURL: url,
-        hasAuthToken: !!localStorage.getItem('admin_token'),
-        data: backendData,
-        headers: {
-          hasAuthorization: !!headers.headers.Authorization,
-          contentType: headers.headers['Content-Type']
-        }
-      })
+      // console.log('🔄 [evalationService] Creando evaluación:', {
+      //   url: url,
+      //   baseURL: API_URL,
+      //   endpoint: '/admin/evaluations',
+      //   fullURL: url,
+      //   hasAuthToken: !!localStorage.getItem('admin_token'),
+      //   data: backendData,
+      //   headers: {
+      //     hasAuthorization: !!headers.headers.Authorization,
+      //     contentType: headers.headers['Content-Type']
+      //   }
+      // })
 
       const response = await axios.post(url, backendData, headers)
       
-      console.log('✅ [evalationService] Respuesta del servidor:', response.data)
+      // console.log('✅ [evalationService] Respuesta del servidor:', response.data)
       
       if (response.data.success && response.data.data) {
         // Recargar las evaluaciones para obtener la lista actualizada

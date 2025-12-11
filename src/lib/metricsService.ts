@@ -161,14 +161,14 @@ export const metricsService = {
       const queryString = params.toString()
       const url = `${API_URL}/admin/metrics${queryString ? `?${queryString}` : ''}`
 
-      console.log('📊 [MetricsService] Obteniendo métricas...', { months, startDate, endDate })
+      // console.log('📊 [MetricsService] Obteniendo métricas...', { months, startDate, endDate })
       const response = await axios.get<MetricsResponse>(url, getAuthHeaders())
 
       if (!response.data.success) {
         throw new Error('Error al obtener métricas')
       }
 
-      console.log('✅ [MetricsService] Métricas recibidas:', response.data.data)
+      // console.log('✅ [MetricsService] Métricas recibidas:', response.data.data)
       return response.data.data
     } catch (error: any) {
       console.error('❌ [MetricsService] Error al obtener métricas:', error.response?.data || error.message)
@@ -226,7 +226,7 @@ export const metricsService = {
 
       const url = `${API_URL}/admin/metrics/export?${params.toString()}`
 
-      console.log('📥 [MetricsService] Exportando reporte...', { format, months, startDate, endDate })
+      // console.log('📥 [MetricsService] Exportando reporte...', { format, months, startDate, endDate })
       const response = await axios.get(url, {
         ...getAuthHeaders(),
         responseType: 'blob', // Ambos formatos son binarios
@@ -244,7 +244,7 @@ export const metricsService = {
         : 'application/vnd.ms-excel'
       
       const blob = new Blob([response.data], { type: mimeType })
-      console.log('📦 [MetricsService] Archivo generado correctamente:', format, 'Size:', blob.size, 'bytes')
+      // console.log('📦 [MetricsService] Archivo generado correctamente:', format, 'Size:', blob.size, 'bytes')
       return blob
     } catch (error: any) {
       console.error('❌ [MetricsService] Error al exportar reporte:', error.response?.data || error.message)

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination'
 import { Users, MagnifyingGlass, EnvelopeSimple, Phone, Briefcase, GraduationCap, Star, Sparkle, PaperPlaneTilt, ClockCounterClockwise, CheckCircle, XCircle, Eye, Clock, Funnel, Info, CaretDown, CaretUp, Calendar, User } from '@phosphor-icons/react'
 import { formatDate } from '@/lib/constants'
@@ -80,7 +81,7 @@ export function TalentBank({
 
   // Paginación: usar la del backend si está disponible, sino local
   const [currentPage, setCurrentPage] = useState(1)
-  const [perPage, setPerPage] = useState(50)
+  const [perPage, setPerPage] = useState(10)
   
   // Si hay paginación externa, usar esa
   const pagination = externalPagination || {
@@ -304,16 +305,18 @@ export function TalentBank({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-foreground">Banco de Talento</h1>
-          <p className="text-muted-foreground mt-1">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">Banco de Talento</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             Candidatos destacados guardados para futuras oportunidades
           </p>
         </div>
-        <Badge variant="secondary" className="text-lg px-4 py-2">
+        <Badge variant="secondary" className="text-sm sm:text-base px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
           {pagination.total} {searchTerm ? 'resultados' : 'candidatos'}
-          {pagination.last_page > 1 && ` (Página ${pagination.current_page} de ${pagination.last_page})`}
+          {pagination.last_page > 1 && (
+            <span className="hidden sm:inline"> (Página {pagination.current_page} de {pagination.last_page})</span>
+          )}
         </Badge>
       </div>
 
@@ -346,7 +349,7 @@ export function TalentBank({
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {paginatedCandidates.map((candidate) => (
           <TalentBankCard
             key={candidate.id}
@@ -375,9 +378,47 @@ export function TalentBank({
         )}
       </div>
 
-      {/* Paginación optimizada - usar paginación del backend si está disponible */}
+      {/* Paginación Mejorada */}
       {pagination.last_page > 1 && (
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t">
+          {/* Selector de items por página */}
+          <div className="flex items-center gap-2">
+            <Label htmlFor="items-per-page" className="text-sm text-muted-foreground whitespace-nowrap">
+              Mostrar:
+            </Label>
+            <Select 
+              value={String(pagination.per_page)} 
+              onValueChange={(value) => {
+                const newPerPage = Number(value)
+                if (onPageChange) {
+                  onPageChange(1, newPerPage)
+                } else {
+                  setPerPage(newPerPage)
+                  setCurrentPage(1)
+                }
+              }}
+            >
+              <SelectTrigger id="items-per-page" className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              por página
+            </span>
+          </div>
+
+          {/* Información de paginación */}
+          <div className="text-sm text-muted-foreground">
+            Mostrando <span className="font-semibold text-foreground">{((pagination.current_page - 1) * pagination.per_page) + 1}</span> - <span className="font-semibold text-foreground">{Math.min(pagination.current_page * pagination.per_page, pagination.total)}</span> de <span className="font-semibold text-foreground">{pagination.total}</span> candidatos
+          </div>
+
+          {/* Controles de paginación */}
           <Pagination>
             <PaginationContent>
               <PaginationItem>
@@ -446,9 +487,6 @@ export function TalentBank({
               </PaginationItem>
             </PaginationContent>
           </Pagination>
-          <div className="text-center text-sm text-muted-foreground mt-2">
-            Mostrando {((pagination.current_page - 1) * pagination.per_page) + 1} - {Math.min(pagination.current_page * pagination.per_page, pagination.total)} de {pagination.total} candidatos
-          </div>
         </div>
       )}
 
@@ -458,28 +496,28 @@ export function TalentBank({
           setShowMoreInfo(false) // Resetear al cerrar
         }
       }}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl w-[95vw] sm:w-[90vw] max-h-[85vh] sm:max-h-[90vh] p-0 overflow-hidden flex flex-col">
           {selectedCandidate && (
             <>
-              <DialogHeader>
-                <div className="flex items-start gap-4">
-                  <Avatar className="w-20 h-20">
+              <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b flex-shrink-0">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <Avatar className="w-12 h-12 sm:w-16 sm:h-20 flex-shrink-0">
                     <AvatarImage src={selectedCandidate.avatar} alt={selectedCandidate.name} />
-                    <AvatarFallback className="text-xl bg-primary/10 text-primary">
+                    <AvatarFallback className="text-sm sm:text-lg bg-primary/10 text-primary">
                       {getInitials(selectedCandidate.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <DialogTitle className="text-2xl">{selectedCandidate.name}</DialogTitle>
-                    <div className="space-y-1 mt-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <EnvelopeSimple size={16} />
-                        <span>{selectedCandidate.email}</span>
+                  <div className="flex-1 min-w-0">
+                    <DialogTitle className="text-lg sm:text-xl lg:text-2xl truncate">{selectedCandidate.name}</DialogTitle>
+                    <div className="space-y-1 mt-1.5 sm:mt-2 text-xs sm:text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <EnvelopeSimple size={14} className="flex-shrink-0 sm:w-4 sm:h-4" />
+                        <span className="truncate break-all">{selectedCandidate.email}</span>
                       </div>
                       {selectedCandidate.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone size={16} />
-                          <span>{selectedCandidate.phone}</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <Phone size={14} className="flex-shrink-0 sm:w-4 sm:h-4" />
+                          <span className="truncate">{selectedCandidate.phone}</span>
                         </div>
                       )}
                     </div>
@@ -487,7 +525,7 @@ export function TalentBank({
                 </div>
               </DialogHeader>
 
-              <div className="space-y-6 pt-4">
+              <div className="space-y-4 sm:space-y-6 pt-3 sm:pt-4 px-4 sm:px-6 pb-4 sm:pb-6 overflow-y-auto flex-1">
                 {selectedCandidate.workExperience && selectedCandidate.workExperience.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
@@ -496,14 +534,14 @@ export function TalentBank({
                     </div>
                     <div className="space-y-3">
                       {selectedCandidate.workExperience.map((exp) => (
-                        <div key={exp.id} className="pl-4 border-l-2 border-primary/20">
-                          <h4 className="font-medium">{exp.position}</h4>
-                          <p className="text-sm text-muted-foreground">{exp.company}</p>
+                        <div key={exp.id} className="pl-3 sm:pl-4 border-l-2 border-primary/20">
+                          <h4 className="font-medium text-sm sm:text-base truncate">{exp.position}</h4>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{exp.company}</p>
                           <p className="text-xs text-muted-foreground mt-1">
                             {formatDate(exp.startDate)} - {exp.current ? 'Actual' : formatDate(exp.endDate || '')}
                           </p>
                           {exp.description && (
-                            <p className="text-sm mt-2">{exp.description}</p>
+                            <p className="text-xs sm:text-sm mt-2 break-words">{exp.description}</p>
                           )}
                         </div>
                       ))}
@@ -519,9 +557,9 @@ export function TalentBank({
                     </div>
                     <div className="space-y-3">
                       {selectedCandidate.education.map((edu) => (
-                        <div key={edu.id} className="pl-4 border-l-2 border-primary/20">
-                          <h4 className="font-medium">{edu.degree} en {edu.field}</h4>
-                          <p className="text-sm text-muted-foreground">{edu.institution}</p>
+                        <div key={edu.id} className="pl-3 sm:pl-4 border-l-2 border-primary/20">
+                          <h4 className="font-medium text-sm sm:text-base truncate">{edu.degree} en {edu.field}</h4>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{edu.institution}</p>
                           <p className="text-xs text-muted-foreground mt-1">
                             {formatDate(edu.startDate)} - {edu.current ? 'En curso' : formatDate(edu.endDate || '')}
                           </p>
@@ -537,10 +575,10 @@ export function TalentBank({
                       <Star size={20} className="text-primary" weight="duotone" />
                       <h3 className="font-semibold">Habilidades</h3>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {selectedCandidate.skills.map((skill, idx) => (
-                        <Badge key={idx} variant="secondary">
-                          {skill}
+                        <Badge key={idx} variant="secondary" className="text-xs px-2 py-0.5">
+                          <span className="truncate max-w-[120px] sm:max-w-none">{skill}</span>
                         </Badge>
                       ))}
                     </div>
@@ -740,8 +778,8 @@ export function TalentBank({
                             >
                               <div className="flex items-start justify-between gap-2 mb-2">
                                 <div className="flex-1 min-w-0">
-                                  <h4 className="font-medium truncate">{job.title}</h4>
-                                  <p className="text-sm text-muted-foreground">{job.location}</p>
+                                  <h4 className="font-medium text-sm sm:text-base truncate">{job.title}</h4>
+                                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{job.location}</p>
                                 </div>
                                 <div className="flex flex-col items-end gap-1">
                                   <Badge variant="default" className="shrink-0">
@@ -826,11 +864,11 @@ export function TalentBank({
                   ) : null}
                 </div>
 
-                <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="flex-1" onClick={() => setSelectedCandidate(null)}>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t mt-4 sm:mt-6 flex-shrink-0">
+                  <Button variant="outline" className="flex-1 text-sm sm:text-base py-2" onClick={() => setSelectedCandidate(null)}>
                     Cerrar
                   </Button>
-                  <Button className="flex-1" onClick={handleSaveNotes}>
+                  <Button className="flex-1 text-sm sm:text-base py-2" onClick={handleSaveNotes}>
                     Guardar Notas
                   </Button>
                 </div>

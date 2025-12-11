@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,7 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { MagnifyingGlass, FunnelSimple, User, Envelope, Phone, LinkedinLogo, Calendar, CircleNotch, Briefcase, GraduationCap, Star, MapPin, FileText, Globe, Trash } from '@phosphor-icons/react'
+import { MagnifyingGlass, FunnelSimple, User, Envelope, Phone, LinkedinLogo, Calendar, CircleNotch, Briefcase, GraduationCap, Star, MapPin, FileText, Globe, Trash, CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
+import { Label } from '@/components/ui/label'
 import type { Application, CandidateStatus } from '@/lib/types'
 import { statusLabels, statusColors, formatDate } from '@/lib/constants'
 import { useApplications } from '@/hooks/useApplications'
@@ -32,6 +34,10 @@ export function Applications() {
   const [selectedApplicationDetail, setSelectedApplicationDetail] = useState<AdminApplicationDetail | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [updating, setUpdating] = useState(false)
+  
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const filteredApplications = useMemo(() => {
     return applications.filter(app => {
@@ -50,6 +56,17 @@ export function Applications() {
     })
   }, [applications, candidates, jobs, searchTerm, statusFilter, jobFilter])
 
+  // Paginación
+  const totalPages = Math.ceil(filteredApplications.length / itemsPerPage)
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const paginatedApplications = filteredApplications.slice(indexOfFirstItem, indexOfLastItem)
+
+  // Resetear página cuando cambian filtros
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, statusFilter, jobFilter])
+
   const selectedCandidate = selectedApplication 
     ? candidates.find(c => c.id === selectedApplication.candidateId)
     : null
@@ -59,14 +76,14 @@ export function Applications() {
     : null
 
   const handleViewDetails = async (app: Application) => {
-    console.log('🔍 [DEBUG] handleViewDetails llamado con:', app)
+    // console.log('🔍 [DEBUG] handleViewDetails llamado con:', app)
     setSelectedApplication(app)
     setLoadingDetail(true)
     
     try {
-      console.log('📡 [DEBUG] Solicitando detalles para ID:', Number(app.id))
+      // console.log('📡 [DEBUG] Solicitando detalles para ID:', Number(app.id))
       const detail = await adminApplicationService.getApplicationDetail(Number(app.id))
-      console.log('✅ [DEBUG] Detalles recibidos:', detail)
+      // console.log('✅ [DEBUG] Detalles recibidos:', detail)
       setSelectedApplicationDetail(detail)
     } catch (error) {
       console.error('❌ [ERROR] Error al cargar detalles:', error)
@@ -223,7 +240,7 @@ export function Applications() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredApplications.length === 0 ? (
+                {paginatedApplications.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                       {applications.length === 0 
@@ -232,7 +249,7 @@ export function Applications() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredApplications.map((app) => {
+                  paginatedApplications.map((app) => {
                     const candidate = candidates.find(c => c.id === app.candidateId)
                     const job = jobs.find(j => j.id === app.jobId)
                     
@@ -292,14 +309,14 @@ export function Applications() {
 
           {/* Vista de cards para móvil */}
           <div className="md:hidden space-y-3">
-            {filteredApplications.length === 0 ? (
+            {paginatedApplications.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 {applications.length === 0 
                   ? 'No hay postulaciones aún.' 
                   : 'No se encontraron postulaciones con los filtros aplicados.'}
               </div>
             ) : (
-              filteredApplications.map((app) => {
+              paginatedApplications.map((app) => {
                 const candidate = candidates.find(c => c.id === app.candidateId)
                 const job = jobs.find(j => j.id === app.jobId)
                 
@@ -354,6 +371,92 @@ export function Applications() {
               })
             )}
           </div>
+
+          {/* Paginación Mejorada */}
+          {(totalPages > 1 || filteredApplications.length > 0) && (
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t">
+              {/* Selector de items por página */}
+              <div className="flex items-center gap-2">
+                <Label htmlFor="items-per-page" className="text-sm text-muted-foreground whitespace-nowrap">
+                  Mostrar:
+                </Label>
+                <Select value={String(itemsPerPage)} onValueChange={(value) => { setItemsPerPage(Number(value)); setCurrentPage(1) }}>
+                  <SelectTrigger id="items-per-page" className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  por página
+                </span>
+              </div>
+
+              {/* Información de paginación */}
+              <div className="text-sm text-muted-foreground">
+                Mostrando <span className="font-semibold text-foreground">{indexOfFirstItem + 1}</span> - <span className="font-semibold text-foreground">{Math.min(indexOfLastItem, filteredApplications.length)}</span> de <span className="font-semibold text-foreground">{filteredApplications.length}</span> postulaciones
+                {filteredApplications.length !== applications.length && (
+                  <span className="ml-1">(filtrado de {applications.length} total)</span>
+                )}
+              </div>
+
+              {/* Controles de paginación */}
+              {totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} 
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number
+                      if (totalPages <= 5) {
+                        pageNum = i + 1
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i
+                      } else {
+                        pageNum = currentPage - 2 + i
+                      }
+                      
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(pageNum)}
+                            isActive={currentPage === pageNum}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    })}
+                    
+                    {totalPages > 5 && currentPage < totalPages - 2 && (
+                      <PaginationItem>
+                        <PaginationLink className="cursor-default">...</PaginationLink>
+                      </PaginationItem>
+                    )}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -2,10 +2,11 @@ import { ReactNode, useMemo, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { House, Briefcase, UserList, ClipboardText, Bell, SignOut, User, Users, Tag, Star, ChartBar, Images, Lightbulb } from '@phosphor-icons/react'
+import { House, Briefcase, UserList, ClipboardText, Bell, SignOut, User, Users, Tag, Star, ChartBar, Images, Lightbulb, Moon, Sun } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { getUserPermissions, type UserPermission } from '@/services/userService'
 import { NotificationBell } from './notifications/NotificationBell'
+import { useTheme } from '@/hooks/useTheme'
 
 interface LayoutProps {
   children: ReactNode
@@ -155,6 +156,27 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
     }
   }, [loadingPermissions, filteredNavItems, currentView, onNavigate])
 
+  // Componente para toggle de tema
+  const ThemeToggle = () => {
+    const { theme, toggleTheme } = useTheme()
+    
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleTheme}
+        className="h-9 w-9"
+        title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      >
+        {theme === 'dark' ? (
+          <Sun size={18} className="text-yellow-500" />
+        ) : (
+          <Moon size={18} className="text-blue-500" />
+        )}
+      </Button>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background flex">
       <aside className="hidden md:flex md:w-64 md:flex-col bg-card border-r border-border">
@@ -164,7 +186,7 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
               <Briefcase size={20} weight="duotone" className="text-primary-foreground" />
             </div>
             <div>
-              <h2 className="font-semibold text-lg">Coosajer Empleos</h2>
+              <h2 className="font-semibold text-lg">Oportunidades Coosanjer</h2>
               <p className="text-xs text-muted-foreground">Panel Administrativo</p>
             </div>
           </div>
@@ -229,6 +251,7 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
             </h1>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <NotificationBell onNavigate={onNavigate} />
             <Separator orientation="vertical" className="h-6" />
             <div className="flex items-center gap-2 text-sm">
@@ -245,9 +268,10 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center flex-shrink-0">
                 <Briefcase size={16} weight="duotone" className="text-primary-foreground" />
               </div>
-              <h2 className="font-semibold text-sm sm:text-base truncate">Coosajer Empleos</h2>
+              <h2 className="font-semibold text-sm sm:text-base truncate">Oportunidades Coosanjer</h2>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
+              <ThemeToggle />
               <NotificationBell onNavigate={onNavigate} />
               <Button variant="ghost" size="sm" onClick={onLogout} className="h-8 w-8 p-0">
                 <SignOut size={18} />

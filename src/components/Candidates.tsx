@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
@@ -65,7 +64,7 @@ export function Candidates() {
   })
   const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [perPage, setPerPage] = useState(50)
+  const [perPage, setPerPage] = useState(10)
   
   // Estado del candidato seleccionado
   const [selectedCandidateId, setSelectedCandidateId] = useState<number | null>(null)
@@ -395,7 +394,7 @@ export function Candidates() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredCandidates.length === 0 ? (
               <div className="col-span-full text-center py-12 text-muted-foreground">
                 {candidates.length === 0 
@@ -413,9 +412,36 @@ export function Candidates() {
             )}
           </div>
           
-          {/* Paginación */}
+          {/* Paginación Mejorada */}
           {pagination.last_page > 1 && (
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t">
+              {/* Selector de items por página */}
+              <div className="flex items-center gap-2">
+                <Label htmlFor="items-per-page" className="text-sm text-muted-foreground whitespace-nowrap">
+                  Mostrar:
+                </Label>
+                <Select value={String(perPage)} onValueChange={(value) => { setPerPage(Number(value)); setCurrentPage(1) }}>
+                  <SelectTrigger id="items-per-page" className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  por página
+                </span>
+              </div>
+
+              {/* Información de paginación */}
+              <div className="text-sm text-muted-foreground">
+                Mostrando <span className="font-semibold text-foreground">{((pagination.current_page - 1) * pagination.per_page) + 1}</span> - <span className="font-semibold text-foreground">{Math.min(pagination.current_page * pagination.per_page, pagination.total)}</span> de <span className="font-semibold text-foreground">{pagination.total}</span> candidatos
+              </div>
+
+              {/* Controles de paginación */}
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
@@ -469,47 +495,48 @@ export function Candidates() {
         </CardContent>
       </Card>
 
-      <Sheet open={!!selectedCandidateId} onOpenChange={(open) => !open && setSelectedCandidateId(null)}>
-        <SheetContent className="sm:max-w-2xl w-full max-w-full p-0 overflow-y-auto">
-          <ScrollArea className="h-full">
-            <div className="p-6">
-              <SheetHeader className="mb-6">
-                <SheetTitle className="text-2xl">Perfil del Candidato</SheetTitle>
-                <SheetDescription>
-                  Información completa del candidato y sus postulaciones
-                </SheetDescription>
-              </SheetHeader>
+      <Dialog open={!!selectedCandidateId} onOpenChange={(open) => !open && setSelectedCandidateId(null)}>
+        <DialogContent className="max-w-3xl w-[95vw] sm:w-[90vw] max-h-[85vh] sm:max-h-[90vh] p-0 overflow-hidden flex flex-col">
+          <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b flex-shrink-0">
+            <DialogTitle className="text-lg sm:text-xl">Perfil del Candidato</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              Información completa del candidato y sus postulaciones
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="flex-1 px-4 sm:px-6 py-3 sm:py-4 overflow-y-auto">
+            <div>
               
               {!selectedCandidateDetail ? (
                 <div className="flex items-center justify-center py-12">
                   <p className="text-muted-foreground">Cargando información del candidato...</p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Header con foto y datos básicos */}
                   <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+                    <CardContent className="pt-4 sm:pt-6">
+                      <div className="flex items-start gap-3 sm:gap-4">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
                           {selectedCandidateDetail.foto_perfil ? (
                             <img 
                               src={selectedCandidateDetail.foto_perfil} 
                               alt={selectedCandidateDetail.nombre}
-                              className="w-20 h-20 rounded-full object-cover"
+                              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover"
+                              loading="lazy"
                             />
                           ) : (
-                            <User size={40} weight="duotone" className="text-primary" />
+                            <User size={32} weight="duotone" className="text-primary sm:w-10 sm:h-10" />
                           )}
                         </div>
-                        <div className="flex-1 space-y-2">
-                          <h3 className="text-2xl font-bold">{selectedCandidateDetail.nombre}</h3>
+                        <div className="flex-1 space-y-1.5 sm:space-y-2 min-w-0">
+                          <h3 className="text-xl sm:text-2xl font-bold truncate">{selectedCandidateDetail.nombre}</h3>
                           {selectedCandidateDetail.profesion && (
-                            <p className="text-lg text-muted-foreground">{selectedCandidateDetail.profesion}</p>
+                            <p className="text-base sm:text-lg text-muted-foreground truncate">{selectedCandidateDetail.profesion}</p>
                           )}
                           {selectedCandidateDetail.ubicacion && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin size={16} />
-                              <span>{selectedCandidateDetail.ubicacion}</span>
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                              <MapPin size={14} className="flex-shrink-0 sm:w-4 sm:h-4" />
+                              <span className="truncate">{selectedCandidateDetail.ubicacion}</span>
                             </div>
                           )}
                         </div>
@@ -519,44 +546,44 @@ export function Candidates() {
 
                   {/* Información de contacto */}
                   <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Envelope size={20} />
-                        Información de Contacto
+                    <CardHeader className="pb-3 sm:pb-6">
+                      <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                        <Envelope size={18} className="sm:w-5 sm:h-5" />
+                        <span>Información de Contacto</span>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center gap-3 text-sm">
-                        <Envelope size={18} className="text-muted-foreground" />
-                        <span>{selectedCandidateDetail.email}</span>
+                    <CardContent className="space-y-2.5 sm:space-y-3 pt-0">
+                      <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                        <Envelope size={16} className="text-muted-foreground flex-shrink-0 sm:w-[18px] sm:h-[18px]" />
+                        <span className="truncate break-all">{selectedCandidateDetail.email}</span>
                       </div>
                       {selectedCandidateDetail.telefono && (
-                        <div className="flex items-center gap-3 text-sm">
-                          <Phone size={18} className="text-muted-foreground" />
-                          <span>{selectedCandidateDetail.telefono}</span>
+                        <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                          <Phone size={16} className="text-muted-foreground flex-shrink-0 sm:w-[18px] sm:h-[18px]" />
+                          <span className="truncate">{selectedCandidateDetail.telefono}</span>
                         </div>
                       )}
                       {selectedCandidateDetail.linkedin && (
-                        <div className="flex items-center gap-3 text-sm">
-                          <LinkedinLogo size={18} className="text-muted-foreground" />
+                        <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                          <LinkedinLogo size={16} className="text-muted-foreground flex-shrink-0 sm:w-[18px] sm:h-[18px]" />
                           <a 
                             href={selectedCandidateDetail.linkedin} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="text-primary hover:underline"
+                            className="text-primary hover:underline truncate"
                           >
                             Ver perfil de LinkedIn
                           </a>
                         </div>
                       )}
                       {selectedCandidateDetail.portfolio && (
-                        <div className="flex items-center gap-3 text-sm">
-                          <Globe size={18} className="text-muted-foreground" />
+                        <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                          <Globe size={16} className="text-muted-foreground flex-shrink-0 sm:w-[18px] sm:h-[18px]" />
                           <a 
                             href={selectedCandidateDetail.portfolio} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="text-primary hover:underline"
+                            className="text-primary hover:underline truncate"
                           >
                             Ver portafolio
                           </a>
@@ -569,11 +596,11 @@ export function Candidates() {
                   <Button 
                     onClick={handleAddToTalentBank}
                     disabled={isInTalentBank || addingToTalentBank}
-                    className="w-full gap-2"
+                    className="w-full gap-1.5 sm:gap-2 text-xs sm:text-sm py-1.5 sm:py-2"
                     variant={isInTalentBank ? "outline" : "default"}
                   >
-                    <StarFour size={18} weight={isInTalentBank ? "fill" : "regular"} />
-                    {isInTalentBank ? 'Ya está en el Banco de Talento' : 'Agregar al Banco de Talento'}
+                    <StarFour size={14} weight={isInTalentBank ? "fill" : "regular"} className="sm:w-4 sm:h-4" />
+                    <span className="truncate">{isInTalentBank ? 'Ya está en el Banco de Talento' : 'Agregar al Banco de Talento'}</span>
                   </Button>
 
                   <Separator />
@@ -581,14 +608,14 @@ export function Candidates() {
                   {/* Biografía */}
                   {selectedCandidateDetail.bio && (
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <FileText size={20} />
-                          Acerca de
+                      <CardHeader className="pb-3 sm:pb-6">
+                        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                          <FileText size={18} className="sm:w-5 sm:h-5" />
+                          <span>Acerca de</span>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                      <CardContent className="pt-0">
+                        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed break-words">
                           {selectedCandidateDetail.bio}
                         </p>
                       </CardContent>
@@ -598,22 +625,22 @@ export function Candidates() {
                   {/* Experiencia Laboral */}
                   {selectedCandidateDetail.experiencia && selectedCandidateDetail.experiencia.length > 0 && (
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Briefcase size={20} />
-                          Experiencia Laboral
+                      <CardHeader className="pb-2 sm:pb-3 pt-3 sm:pt-4">
+                        <CardTitle className="text-sm sm:text-base flex items-center gap-1.5 sm:gap-2">
+                          <Briefcase size={16} className="sm:w-4 sm:h-4" />
+                          <span>Experiencia Laboral</span>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-2 sm:space-y-3 pt-0 pb-3 sm:pb-4">
                         {selectedCandidateDetail.experiencia.map((exp, index) => (
-                          <div key={index} className="border-l-2 border-primary/20 pl-4 space-y-1">
-                            <h4 className="font-semibold">{exp.puesto}</h4>
-                            <p className="text-sm text-primary">{exp.empresa}</p>
+                          <div key={index} className="border-l-2 border-primary/20 pl-2 sm:pl-3 space-y-0.5 sm:space-y-1">
+                            <h4 className="font-semibold text-xs sm:text-sm truncate">{exp.puesto}</h4>
+                            <p className="text-xs text-primary truncate">{exp.empresa}</p>
                             <p className="text-xs text-muted-foreground">
                               {exp.fecha_inicio} - {exp.actualmente_trabajando ? 'Presente' : exp.fecha_fin}
                             </p>
                             {exp.descripcion && (
-                              <p className="text-sm text-muted-foreground pt-2">{exp.descripcion}</p>
+                              <p className="text-xs text-muted-foreground pt-1 sm:pt-2 break-words">{exp.descripcion}</p>
                             )}
                           </div>
                         ))}
@@ -624,17 +651,17 @@ export function Candidates() {
                   {/* Educación */}
                   {selectedCandidateDetail.educacion && selectedCandidateDetail.educacion.length > 0 && (
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <GraduationCap size={20} />
-                          Educación
+                      <CardHeader className="pb-2 sm:pb-3 pt-3 sm:pt-4">
+                        <CardTitle className="text-sm sm:text-base flex items-center gap-1.5 sm:gap-2">
+                          <GraduationCap size={16} className="sm:w-4 sm:h-4" />
+                          <span>Educación</span>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-2 sm:space-y-3 pt-0 pb-3 sm:pb-4">
                         {selectedCandidateDetail.educacion.map((edu, index) => (
-                          <div key={index} className="border-l-2 border-primary/20 pl-4 space-y-1">
-                            <h4 className="font-semibold">{edu.titulo}</h4>
-                            <p className="text-sm text-primary">{edu.institucion}</p>
+                          <div key={index} className="border-l-2 border-primary/20 pl-2 sm:pl-3 space-y-0.5 sm:space-y-1">
+                            <h4 className="font-semibold text-xs sm:text-sm truncate">{edu.titulo}</h4>
+                            <p className="text-xs text-primary truncate">{edu.institucion}</p>
                             <p className="text-xs text-muted-foreground">
                               {edu.nivel} • {edu.fecha_inicio} - {edu.en_curso ? 'En curso' : edu.fecha_fin}
                             </p>
@@ -647,19 +674,19 @@ export function Candidates() {
                   {/* Habilidades */}
                   {selectedCandidateDetail.habilidades && selectedCandidateDetail.habilidades.length > 0 && (
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Star size={20} />
-                          Habilidades
+                      <CardHeader className="pb-2 sm:pb-3 pt-3 sm:pt-4">
+                        <CardTitle className="text-sm sm:text-base flex items-center gap-1.5 sm:gap-2">
+                          <Star size={16} className="sm:w-4 sm:h-4" />
+                          <span>Habilidades</span>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2">
+                      <CardContent className="pt-0 pb-3 sm:pb-4">
+                        <div className="flex flex-wrap gap-1 sm:gap-1.5">
                           {selectedCandidateDetail.habilidades.map((skill, index) => (
-                            <Badge key={index} variant="secondary" className="px-3 py-1">
-                              <span className="font-medium">{skill.nombre}</span>
+                            <Badge key={index} variant="secondary" className="px-1.5 sm:px-2 py-0.5 text-xs">
+                              <span className="font-medium truncate">{skill.nombre}</span>
                               {skill.nivel && (
-                                <span className="ml-2 text-xs text-muted-foreground">• {skill.nivel}</span>
+                                <span className="ml-1 sm:ml-1.5 text-xs text-muted-foreground">• {skill.nivel}</span>
                               )}
                             </Badge>
                           ))}
@@ -673,17 +700,17 @@ export function Candidates() {
                   {/* CV */}
                   {selectedCandidateDetail.cvs && selectedCandidateDetail.cvs.length > 0 && (
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <FileText size={20} />
-                          Currículum Vitae
+                      <CardHeader className="pb-2 sm:pb-3 pt-3 sm:pt-4">
+                        <CardTitle className="text-sm sm:text-base flex items-center gap-1.5 sm:gap-2">
+                          <FileText size={16} className="sm:w-4 sm:h-4" />
+                          <span>Currículum Vitae</span>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{selectedCandidateDetail.cvs[0].nombre_archivo}</p>
-                            <p className="text-xs text-muted-foreground">
+                      <CardContent className="pt-0 pb-3 sm:pb-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-xs sm:text-sm truncate">{selectedCandidateDetail.cvs[0].nombre_archivo}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               Subido el {new Date(selectedCandidateDetail.cvs[0].fecha_subida).toLocaleDateString()}
                             </p>
                           </div>
@@ -691,9 +718,10 @@ export function Candidates() {
                             size="sm"
                             variant="outline"
                             onClick={() => window.open(selectedCandidateDetail.cvs![0].url, '_blank')}
+                            className="w-full sm:w-auto text-xs py-1 sm:py-1.5"
                           >
-                            <DownloadSimple size={16} className="mr-2" />
-                            Descargar CV
+                            <DownloadSimple size={12} className="mr-1.5 sm:w-3.5 sm:h-3.5" />
+                            <span>Descargar CV</span>
                           </Button>
                         </div>
                       </CardContent>
@@ -702,37 +730,45 @@ export function Candidates() {
 
                   {/* Tabs de Postulaciones */}
                   <Tabs defaultValue="postulaciones" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="postulaciones">Postulaciones</TabsTrigger>
-                      <TabsTrigger value="evaluaciones">Evaluaciones</TabsTrigger>
-                      <TabsTrigger value="ia">IA</TabsTrigger>
-                      <TabsTrigger value="psicometricas">Psicométricas</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-4 h-auto p-0.5 sm:p-1">
+                      <TabsTrigger value="postulaciones" className="text-[10px] sm:text-xs px-1 sm:px-2 py-1 sm:py-1.5">
+                        <span className="truncate">Postulaciones</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="evaluaciones" className="text-[10px] sm:text-xs px-1 sm:px-2 py-1 sm:py-1.5">
+                        <span className="truncate">Evaluaciones</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="ia" className="text-[10px] sm:text-xs px-1 sm:px-2 py-1 sm:py-1.5">
+                        <span className="truncate">IA</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="psicometricas" className="text-[10px] sm:text-xs px-1 sm:px-2 py-1 sm:py-1.5">
+                        <span className="truncate">Psicométricas</span>
+                      </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="postulaciones" className="space-y-4">
+                    <TabsContent value="postulaciones" className="space-y-2 sm:space-y-3 mt-2 sm:mt-3">
                       {selectedCandidateDetail.postulaciones.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
+                        <div className="text-center py-4 sm:py-6 text-muted-foreground text-xs sm:text-sm">
                           No hay postulaciones registradas
                         </div>
                       ) : (
-                        <ScrollArea className="h-[400px] pr-4">
-                          <div className="space-y-3">
+                        <ScrollArea className="h-[200px] sm:h-[250px] pr-2">
+                          <div className="space-y-2 sm:space-y-3">
                             {selectedCandidateDetail.postulaciones.map(post => (
                               <Card key={post.id}>
-                                <CardContent className="pt-4">
-                                  <div className="space-y-3">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <h4 className="font-semibold text-lg">{post.oferta?.titulo || 'Oferta sin título'}</h4>
-                                        <p className="text-sm text-muted-foreground">{post.oferta?.empresa || 'COOSANJER'}</p>
+                                <CardContent className="pt-3 sm:pt-4">
+                                  <div className="space-y-2 sm:space-y-3">
+                                    <div className="flex justify-between items-start gap-2">
+                                      <div className="flex-1 min-w-0">
+                                        <h4 className="font-semibold text-base sm:text-lg truncate">{post.oferta?.titulo || 'Oferta sin título'}</h4>
+                                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{post.oferta?.empresa || 'COOSANJER'}</p>
                                       </div>
-                                      <Badge variant="outline">
-                                        {post.estado}
+                                      <Badge variant="outline" className="text-xs flex-shrink-0">
+                                        <span className="truncate max-w-[80px] sm:max-w-none">{post.estado}</span>
                                       </Badge>
                                     </div>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                      <Calendar size={16} />
-                                      <span>Aplicó el {new Date(post.fecha_postulacion).toLocaleDateString('es-ES', {
+                                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                                      <Calendar size={14} className="flex-shrink-0 sm:w-4 sm:h-4" />
+                                      <span className="truncate">Aplicó el {new Date(post.fecha_postulacion).toLocaleDateString('es-ES', {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric'
@@ -747,17 +783,17 @@ export function Candidates() {
                       )}
                     </TabsContent>
 
-                    <TabsContent value="evaluaciones" className="space-y-4">
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-semibold">Evaluaciones ({evaluations.length})</h4>
+                    <TabsContent value="evaluaciones" className="space-y-2 sm:space-y-3 mt-2 sm:mt-3">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                        <h4 className="font-semibold text-sm sm:text-base">Evaluaciones ({evaluations.length})</h4>
                         <Dialog open={showEvaluationDialog} onOpenChange={setShowEvaluationDialog}>
                           <DialogTrigger asChild>
-                            <Button size="sm" className="gap-2">
-                              <Plus size={16} />
-                              Nueva Evaluación
+                            <Button size="sm" className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
+                              <Plus size={14} className="sm:w-4 sm:h-4" />
+                              <span>Nueva Evaluación</span>
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                          <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                               <DialogTitle>Nueva Evaluación</DialogTitle>
                               <DialogDescription>
@@ -863,48 +899,50 @@ export function Candidates() {
                           </p>
                         </div>
                       ) : (
-                        <ScrollArea className="h-[400px] pr-4">
-                          <div className="space-y-3">
+                        <ScrollArea className="h-[200px] sm:h-[250px] pr-2">
+                          <div className="space-y-1.5 sm:space-y-2">
                             {evaluations.map((evaluation) => (
                               <Card key={evaluation.id}>
-                                <CardContent className="pt-4">
-                                  <div className="space-y-3">
-                                    <div className="flex justify-between items-start">
-                                      <div className="flex items-center gap-3">
+                                <CardContent className="pt-2 sm:pt-3 pb-2 sm:pb-3">
+                                  <div className="space-y-2 sm:space-y-3">
+                                    <div className="flex justify-between items-start gap-2">
+                                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                         {evaluation.type === 'interview' ? (
-                                          <VideoCamera size={24} className="text-primary" weight="duotone" />
+                                          <VideoCamera size={20} className="text-primary flex-shrink-0 sm:w-6 sm:h-6" weight="duotone" />
                                         ) : (
-                                          <Clipboard size={24} className="text-primary" weight="duotone" />
+                                          <Clipboard size={20} className="text-primary flex-shrink-0 sm:w-6 sm:h-6" weight="duotone" />
                                         )}
-                                        <div>
-                                          <h4 className="font-semibold">
+                                        <div className="min-w-0 flex-1">
+                                          <h4 className="font-semibold text-sm sm:text-base truncate">
                                             {evaluation.type === 'interview' ? 'Entrevista' :
                                              evaluation.type === 'technical-test' ? 'Prueba Técnica' :
                                              evaluation.type === 'psychometric' ? 'Prueba Psicológica' : 'Evaluación'}
                                           </h4>
-                                          <p className="text-sm text-muted-foreground">
+                                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
                                             {evaluation.mode === 'virtual' ? 'Virtual' : 
                                              evaluation.mode === 'in-person' ? 'Presencial' : evaluation.mode}
                                           </p>
                                         </div>
                                       </div>
-                                      <Badge variant={evaluation.completedAt ? "default" : "outline"}>
+                                      <Badge variant={evaluation.completedAt ? "default" : "outline"} className="text-xs flex-shrink-0">
                                         {evaluation.completedAt ? (
                                           <span className="flex items-center gap-1">
-                                            <CheckCircle size={14} />
-                                            Completada
+                                            <CheckCircle size={12} className="sm:w-3.5 sm:h-3.5" />
+                                            <span className="hidden sm:inline">Completada</span>
+                                            <span className="sm:hidden">OK</span>
                                           </span>
                                         ) : (
                                           <span className="flex items-center gap-1">
-                                            <Clock size={14} />
-                                            Pendiente
+                                            <Clock size={12} className="sm:w-3.5 sm:h-3.5" />
+                                            <span className="hidden sm:inline">Pendiente</span>
+                                            <span className="sm:hidden">Pend.</span>
                                           </span>
                                         )}
                                       </Badge>
                                     </div>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                      <Calendar size={16} />
-                                      <span>
+                                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                                      <Calendar size={14} className="flex-shrink-0 sm:w-4 sm:h-4" />
+                                      <span className="truncate">
                                         {evaluation.scheduledDate && new Date(evaluation.scheduledDate).toLocaleDateString('es-ES', {
                                           weekday: 'long',
                                           year: 'numeric',
@@ -915,20 +953,20 @@ export function Candidates() {
                                       </span>
                                     </div>
                                     {evaluation.interviewer && (
-                                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <UserCircle size={16} />
-                                        <span>Responsable: {evaluation.interviewer}</span>
+                                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                                        <UserCircle size={14} className="flex-shrink-0 sm:w-4 sm:h-4" />
+                                        <span className="truncate">Responsable: {evaluation.interviewer}</span>
                                       </div>
                                     )}
                                     {evaluation.observations && (
-                                      <p className="text-sm text-muted-foreground pt-2 border-t">
+                                      <p className="text-xs sm:text-sm text-muted-foreground pt-2 border-t break-words">
                                         {evaluation.observations}
                                       </p>
                                     )}
                                     {evaluation.result && (
                                       <div className="pt-2 border-t">
-                                        <p className="text-sm font-medium mb-1">Resultado:</p>
-                                        <p className="text-sm text-muted-foreground">{evaluation.result}</p>
+                                        <p className="text-xs sm:text-sm font-medium mb-1">Resultado:</p>
+                                        <p className="text-xs sm:text-sm text-muted-foreground break-words">{evaluation.result}</p>
                                       </div>
                                     )}
                                   </div>
@@ -958,8 +996,8 @@ export function Candidates() {
               )}
             </div>
           </ScrollArea>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

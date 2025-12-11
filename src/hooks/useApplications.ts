@@ -25,13 +25,13 @@ export function useApplications() {
 
     backendApps.forEach((app) => {
       // 🔍 DEBUG: Validar datos de cada aplicación
-      console.log('📋 [DEBUG] Procesando app:', {
-        id: app.id,
-        candidato_id: app.candidato?.id,
-        oferta_id: app.oferta?.id,
-        tiene_candidato: !!app.candidato,
-        tiene_oferta: !!app.oferta
-      })
+      // console.log('📋 [DEBUG] Procesando app:', {
+      //   id: app.id,
+      //   candidato_id: app.candidato?.id,
+      //   oferta_id: app.oferta?.id,
+      //   tiene_candidato: !!app.candidato,
+      //   tiene_oferta: !!app.oferta
+      // })
 
       // ✅ Validar que existan candidato y oferta antes de mapear
       if (!app.candidato) {
@@ -89,11 +89,11 @@ export function useApplications() {
       }
     })
 
-    console.log('✅ [DEBUG] Mapeo completado:', {
-      aplicaciones: mappedApplications.length,
-      candidatos: mappedCandidates.length,
-      ofertas: mappedJobs.length
-    })
+    // console.log('✅ [DEBUG] Mapeo completado:', {
+    //   aplicaciones: mappedApplications.length,
+    //   candidatos: mappedCandidates.length,
+    //   ofertas: mappedJobs.length
+    // })
 
     return { mappedApplications, mappedCandidates, mappedJobs }
   }, [])
@@ -106,7 +106,7 @@ export function useApplications() {
     // Verificar token antes de hacer petición
     const token = localStorage.getItem('admin_token')
     if (!token) {
-      console.log('⏳ [useApplications] No hay token, esperando autenticación...')
+      // console.log('⏳ [useApplications] No hay token, esperando autenticación...')
       setLoading(false)
       return
     }
@@ -115,9 +115,9 @@ export function useApplications() {
       setLoading(true)
       setError(null)
       
-      console.log('🔄 [useApplications] Cargando postulaciones...')
+      // console.log('🔄 [useApplications] Cargando postulaciones...')
       const backendApps = await adminApplicationService.getAllApplications(filters)
-      console.log('✅ [useApplications] Postulaciones cargadas:', backendApps.length)
+      // console.log('✅ [useApplications] Postulaciones cargadas:', backendApps.length)
       
       const { mappedApplications, mappedCandidates, mappedJobs } = mapBackendToFrontend(backendApps)
       

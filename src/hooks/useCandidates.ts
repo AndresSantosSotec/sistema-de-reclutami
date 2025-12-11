@@ -30,7 +30,7 @@ export function useCandidates() {
     // Verificar token antes de hacer petición
     const token = localStorage.getItem('admin_token')
     if (!token) {
-      console.log('⏳ [useCandidates] No hay token, esperando autenticación...')
+      // console.log('⏳ [useCandidates] No hay token, esperando autenticación...')
       setLoading(false)
       return
     }
@@ -39,9 +39,9 @@ export function useCandidates() {
       setLoading(true)
       setError(null)
       
-      console.log('🔄 [useCandidates] Cargando candidatos...', filters)
+      // console.log('🔄 [useCandidates] Cargando candidatos...', filters)
       const response = await adminCandidateService.getAllCandidates(filters)
-      console.log('✅ [useCandidates] Candidatos cargados:', response.data.length, 'de', response.total)
+      // console.log('✅ [useCandidates] Candidatos cargados:', response.data.length, 'de', response.total)
       
       // Mapear a formato frontend
       const mappedCandidates = response.data.map(mapBackendCandidateToFrontend)

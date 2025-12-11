@@ -106,24 +106,24 @@ export const talentBankService = {
     if (filters?.page) params.append('page', filters.page.toString())
     if (filters?.per_page) params.append('per_page', filters.per_page.toString())
 
-    console.log('🔄 [talentBankService] Obteniendo banco de talento:', {
-      url: `${API_URL}/admin/talent-bank`,
-      params: params.toString(),
-      filters
-    })
+    // console.log('🔄 [talentBankService] Obteniendo banco de talento:', {
+    //   url: `${API_URL}/admin/talent-bank`,
+    //   params: params.toString(),
+    //   filters
+    // })
 
     const response = await axios.get(
       `${API_URL}/admin/talent-bank?${params.toString()}`,
       getAuthHeaders()
     )
 
-    console.log('✅ [talentBankService] Respuesta recibida:', {
-      success: response.data.success,
-      count: response.data.data?.length || 0,
-      total: response.data.total,
-      current_page: response.data.current_page,
-      last_page: response.data.last_page
-    })
+    // console.log('✅ [talentBankService] Respuesta recibida:', {
+    //   success: response.data.success,
+    //   count: response.data.data?.length || 0,
+    //   total: response.data.total,
+    //   current_page: response.data.current_page,
+    //   last_page: response.data.last_page
+    // })
 
     return {
       data: response.data.data || [],

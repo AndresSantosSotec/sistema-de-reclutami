@@ -18,7 +18,7 @@ export function useJobs(initialFilters?: UseJobsFilters) {
     // Verificar token antes de hacer petición
     const token = localStorage.getItem('admin_token')
     if (!token) {
-      console.log('⏳ [useJobs] No hay token, esperando autenticación...')
+      // console.log('⏳ [useJobs] No hay token, esperando autenticación...')
       setLoading(false)
       return
     }
@@ -26,9 +26,9 @@ export function useJobs(initialFilters?: UseJobsFilters) {
     setLoading(true)
     setError(null)
     try {
-      console.log('🔄 [useJobs] Cargando ofertas laborales...')
+      // console.log('🔄 [useJobs] Cargando ofertas laborales...')
       const data = await adminJobService.getAllJobs(filters)
-      console.log('✅ [useJobs] Datos recibidos:', data?.length || 0, 'ofertas')
+      // console.log('✅ [useJobs] Datos recibidos:', data?.length || 0, 'ofertas')
       
       if (data && Array.isArray(data) && data.length > 0) {
         const mappedJobs = data.map(mapBackendJobToFrontend)

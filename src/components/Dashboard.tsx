@@ -15,13 +15,13 @@ interface DashboardProps {
 export function Dashboard({ applications, jobs, evaluations }: DashboardProps) {
   // 🔍 DEBUG: Log de datos recibidos
   useEffect(() => {
-    console.log('📊 [Dashboard] Datos recibidos:', {
-      jobs: jobs.length,
-      applications: applications.length,
-      evaluations: evaluations.length,
-      jobsActivas: jobs.filter(j => j.status === 'active').length,
-      jobsList: jobs.map(j => ({ id: j.id, title: j.title, status: j.status }))
-    })
+    // console.log('📊 [Dashboard] Datos recibidos:', {
+    //   jobs: jobs.length,
+    //   applications: applications.length,
+    //   evaluations: evaluations.length,
+    //   jobsActivas: jobs.filter(j => j.status === 'active').length,
+    //   jobsList: jobs.map(j => ({ id: j.id, title: j.title, status: j.status }))
+    // })
   }, [applications, jobs, evaluations])
 
   const metrics = useMemo(() => {
@@ -34,13 +34,13 @@ export function Dashboard({ applications, jobs, evaluations }: DashboardProps) {
       return daysDiff <= 7
     }).length
 
-    console.log('📈 [Dashboard] Métricas calculadas:', {
-      activeJobs,
-      totalApplications,
-      pendingInterviews,
-      hired,
-      recentApps
-    })
+    // console.log('📈 [Dashboard] Métricas calculadas:', {
+    //   activeJobs,
+    //   totalApplications,
+    //   pendingInterviews,
+    //   hired,
+    //   recentApps
+    // })
 
     return {
       activeJobs,

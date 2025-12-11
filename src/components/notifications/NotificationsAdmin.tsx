@@ -73,6 +73,7 @@ export function Notifications() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
+  const [itemsPerPage, setItemsPerPage] = useState(15)
 
   // Filtros
   const [search, setSearch] = useState('')
@@ -111,7 +112,7 @@ export function Notifications() {
       setLoading(true)
       const response = await adminNotificationService.getNotifications({
         page: currentPage,
-        per_page: 15,
+        per_page: itemsPerPage,
         tipo: filterType || undefined,
         search: debouncedSearch || undefined,
       })
@@ -124,7 +125,7 @@ export function Notifications() {
     } finally {
       setLoading(false)
     }
-  }, [currentPage, filterType, debouncedSearch])
+  }, [currentPage, filterType, debouncedSearch, itemsPerPage])
 
   // Cargar estadísticas
   const fetchStats = useCallback(async () => {
@@ -832,12 +833,36 @@ export function Notifications() {
                 </TableBody>
               </Table>
 
-              {/* Paginación */}
+              {/* Paginación Mejorada */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <p className="text-sm text-muted-foreground">
-                    Página {currentPage} de {totalPages}
-                  </p>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t">
+                  {/* Selector de items por página */}
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="items-per-page" className="text-sm text-muted-foreground whitespace-nowrap">
+                      Mostrar:
+                    </Label>
+                    <Select value={String(itemsPerPage)} onValueChange={(value) => { setItemsPerPage(Number(value)); setCurrentPage(1) }}>
+                      <SelectTrigger id="items-per-page" className="w-[100px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                      por página
+                    </span>
+                  </div>
+
+                  {/* Información de paginación */}
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando <span className="font-semibold text-foreground">{((currentPage - 1) * itemsPerPage) + 1}</span> - <span className="font-semibold text-foreground">{Math.min(currentPage * itemsPerPage, total)}</span> de <span className="font-semibold text-foreground">{total}</span> notificaciones
+                  </div>
+
+                  {/* Controles de paginación */}
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -848,6 +873,12 @@ export function Notifications() {
                       <CaretLeft size={16} />
                       Anterior
                     </Button>
+                    <div className="flex items-center gap-2 px-3 text-sm">
+                      <span className="text-muted-foreground">Página</span>
+                      <span className="font-semibold">{currentPage}</span>
+                      <span className="text-muted-foreground">de</span>
+                      <span className="font-semibold">{totalPages}</span>
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
