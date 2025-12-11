@@ -6,8 +6,9 @@ WORKDIR /app
 # Copiar package files
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm install
+# Instalar dependencias (ignorar scripts postinstall problemáticos)
+RUN npm install --ignore-scripts && \
+    npm rebuild esbuild --no-ignore-scripts || true
 
 # Copiar el resto de los archivos
 COPY . .
