@@ -90,7 +90,7 @@ export function Login({ onLogin }: LoginProps) {
             </motion.div>
             <div>
               <CardTitle className="text-3xl font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Oportunidades Coosanjer
+              Oportunidades COOSANJER R.L.
               </CardTitle>
               <CardDescription className="text-base mt-2">
                 Panel Administrativo de Reclutamiento

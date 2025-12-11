@@ -186,7 +186,7 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
               <Briefcase size={20} weight="duotone" className="text-primary-foreground" />
             </div>
             <div>
-              <h2 className="font-semibold text-lg">Oportunidades Coosanjer</h2>
+              <h2 className="font-semibold text-lg">Oportunidades COOSANJER R.L.</h2>
               <p className="text-xs text-muted-foreground">Panel Administrativo</p>
             </div>
           </div>
@@ -268,7 +268,7 @@ export function Layout({ children, currentView, onNavigate, onLogout }: LayoutPr
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center flex-shrink-0">
                 <Briefcase size={16} weight="duotone" className="text-primary-foreground" />
               </div>
-              <h2 className="font-semibold text-sm sm:text-base truncate">Oportunidades Coosanjer</h2>
+              <h2 className="font-semibold text-sm sm:text-base truncate">Oportunidades COOSANJER R.L.</h2>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               <ThemeToggle />
