@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuración base de Axios para el panel administrativo
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/v1',
+  baseURL: 'https://oportunidadescoosanjer.com.gt/api/v1',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

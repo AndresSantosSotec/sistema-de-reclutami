@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Consistente con otros servicios: usar la misma base URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'https://oportunidadescoosanjer.com.gt/api/v1';
 
 // Configurar axios con el token del admin
 const getAuthHeaders = () => {
