@@ -493,7 +493,7 @@ export default function Gallery() {
                   <div className="relative aspect-video bg-gray-100">
                     {post.media_type === 'video' ? (
                       <video
-                        src={post.video_url ? `http://localhost:8000${post.video_url}` : undefined}
+                        src={post.video_url ? `https://oportunidadescoosanjer.com.gt${post.video_url}` : undefined}
                         className="w-full h-full object-cover"
                         controls
                         preload="metadata"

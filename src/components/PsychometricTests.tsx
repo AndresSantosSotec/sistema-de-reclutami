@@ -34,7 +34,7 @@ export function PsychometricTests({
   const [testResults, setTestResults] = useState('')
   const [testScore, setTestScore] = useState('')
 
-  const applicationTests = tests.filter(t => t.applicationId === application.id)
+  const applicationTests = tests.filter(t => t.postulante_id.toString() === candidate.id)
 
   const handleSendTest = () => {
     if (!testName.trim()) {
@@ -42,11 +42,9 @@ export function PsychometricTests({
       return
     }
 
-    const newTest: Omit<PsychometricTest, 'id' | 'sentAt'> = {
-      applicationId: application.id,
-      candidateId: candidate.id,
-      testName: testName.trim(),
-      externalUrl: externalUrl.trim() || undefined,
+    const newTest: Omit<PsychometricTest, 'id' | 'sent_at'> = {
+      postulante_id: parseInt(candidate.id),
+      test_link: externalUrl.trim() || testName.trim(),
       status: 'sent'
     }
 
@@ -62,8 +60,8 @@ export function PsychometricTests({
     
     if (status === 'completed') {
       toast.success('Prueba marcada como completada')
-    } else if (status === 'in-progress') {
-      toast.info('Prueba marcada como en progreso')
+    } else if (status === 'sent') {
+      toast.info('Prueba enviada')
     }
   }
 
@@ -71,13 +69,12 @@ export function PsychometricTests({
     if (!editingTest) return
 
     const updates: Partial<PsychometricTest> = {
-      results: testResults,
-      score: testScore ? parseFloat(testScore) : undefined,
+      results_link: testResults,
       status: 'completed',
-      completedAt: new Date().toISOString()
+      completed_at: new Date().toISOString()
     }
 
-    onUpdateTest(editingTest.id, updates)
+    onUpdateTest(editingTest.id.toString(), updates)
     toast.success('Resultados guardados exitosamente')
     setEditingTest(null)
     setTestResults('')
@@ -88,10 +85,10 @@ export function PsychometricTests({
     switch (status) {
       case 'sent':
         return <PaperPlaneRight size={16} className="text-blue-600" />
-      case 'in-progress':
-        return <HourglassHigh size={16} className="text-yellow-600" />
       case 'completed':
         return <CheckCircle size={16} className="text-green-600" />
+      case 'expired':
+        return <HourglassHigh size={16} className="text-red-600" />
       default:
         return <Clock size={16} className="text-gray-600" />
     }
@@ -103,10 +100,10 @@ export function PsychometricTests({
         return 'Pendiente'
       case 'sent':
         return 'Enviada'
-      case 'in-progress':
-        return 'En Progreso'
       case 'completed':
         return 'Completada'
+      case 'expired':
+        return 'Expirada'
     }
   }
 
@@ -116,10 +113,10 @@ export function PsychometricTests({
         return 'bg-gray-100 text-gray-800 border-gray-200'
       case 'sent':
         return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'in-progress':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
       case 'completed':
         return 'bg-green-100 text-green-800 border-green-200'
+      case 'expired':
+        return 'bg-red-100 text-red-800 border-red-200'
     }
   }
 
@@ -205,14 +202,14 @@ export function PsychometricTests({
                       <div className="flex-1">
                         <h4 className="font-semibold flex items-center gap-2">
                           {getStatusIcon(test.status)}
-                          {test.testName}
+                          Prueba Psicométrica #{test.id}
                         </h4>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Enviada el {formatDate(test.sentAt)}
+                          {test.sent_at && `Enviada el ${formatDate(test.sent_at)}`}
                         </p>
-                        {test.externalUrl && (
+                        {test.test_link && (
                           <a
-                            href={test.externalUrl}
+                            href={test.test_link}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm text-primary hover:underline mt-1 inline-block"
@@ -228,21 +225,12 @@ export function PsychometricTests({
 
                     {test.status !== 'completed' && (
                       <div className="flex gap-2">
-                        {test.status === 'sent' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleUpdateTestStatus(test.id, 'in-progress')}
-                          >
-                            Marcar En Progreso
-                          </Button>
-                        )}
                         <Button
                           size="sm"
                           onClick={() => {
                             setEditingTest(test)
-                            setTestResults(test.results || '')
-                            setTestScore(test.score?.toString() || '')
+                            setTestResults(test.results_link || '')
+                            setTestScore('')
                           }}
                         >
                           Registrar Resultados
@@ -252,25 +240,22 @@ export function PsychometricTests({
 
                     {test.status === 'completed' && (
                       <div className="bg-green-50 rounded-lg p-4 space-y-2">
-                        {test.score && (
+                        {test.results_link && (
                           <div>
-                            <span className="text-sm font-medium">Puntuación: </span>
-                            <span className="text-lg font-bold text-green-700">
-                              {test.score}
-                            </span>
+                            <span className="text-sm font-medium block mb-1">Enlace de resultados:</span>
+                            <a
+                              href={test.results_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-primary hover:underline"
+                            >
+                              Ver resultados →
+                            </a>
                           </div>
                         )}
-                        {test.results && (
-                          <div>
-                            <span className="text-sm font-medium block mb-1">Resultados:</span>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                              {test.results}
-                            </p>
-                          </div>
-                        )}
-                        {test.completedAt && (
+                        {test.completed_at && (
                           <p className="text-xs text-muted-foreground">
-                            Completada el {formatDate(test.completedAt)}
+                            Completada el {formatDate(test.completed_at)}
                           </p>
                         )}
                       </div>

@@ -73,6 +73,8 @@ export function JobsPage() {
         return {
           id: job.id,
           title: job.titulo,
+          company: job.empresa || 'Coosanjer',
+          type: job.tipo_empleo,
           categoryId: job.categoria?.id,
           description: job.descripcion,
           requirements: job.requisitos || '',

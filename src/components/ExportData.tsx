@@ -107,9 +107,7 @@ export function ExportData({ candidates, applications, jobs, categories }: Expor
         habilidades: candidate.skills?.join(', ') || '',
         experienciaLaboral: candidate.workExperience?.length || 0,
         educacion: candidate.education?.map(edu => `${edu.degree} en ${edu.field}`).join('; ') || '',
-        vacantesAplicadas: jobTitles.join(', '),
-        estado: statusLabels[candidate.status] || candidate.status,
-        fechaPostulacion: new Date(candidate.appliedAt).toLocaleDateString('es-ES')
+        vacantesAplicadas: jobTitles.join(', ')
       }
     })
 
