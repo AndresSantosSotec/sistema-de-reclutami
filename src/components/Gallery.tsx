@@ -500,11 +500,11 @@ export default function Gallery() {
                       />
                     ) : (
                       <img
-                        src={post.thumbnail_url ? `http://localhost:8000${post.thumbnail_url}` : `http://localhost:8000${post.image_url}`}
+                        src={post.thumbnail_url ? `${import.meta.env.VITE_BACKEND_URL || 'https://oportunidadescoosanjer.com.gt'}${post.thumbnail_url}` : `${import.meta.env.VITE_BACKEND_URL || 'https://oportunidadescoosanjer.com.gt'}${post.image_url}`}
                         alt={post.title}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.currentTarget.src = 'http://localhost:8000/images/placeholder.svg'
+                          e.currentTarget.src = `${import.meta.env.VITE_BACKEND_URL || 'https://oportunidadescoosanjer.com.gt'}/images/placeholder.svg`
                         }}
                       />
                     )}
