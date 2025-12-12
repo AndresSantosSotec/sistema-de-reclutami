@@ -55,7 +55,7 @@ export function ExportData({ candidates, applications, jobs, categories }: Expor
       filteredCandidates = filteredCandidates.filter(c =>
         c.skills?.some(skill => 
           filters.skills!.some(filterSkill => 
-            skill.toLowerCase().includes(filterSkill.toLowerCase())
+            skill?.toLowerCase().includes(filterSkill?.toLowerCase() || '')
           )
         )
       )

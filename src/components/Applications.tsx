@@ -45,9 +45,9 @@ export function Applications() {
       const job = jobs.find(j => j.id === app.jobId)
       
       const matchesSearch = !searchTerm || 
-        candidate?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        candidate?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job?.title.toLowerCase().includes(searchTerm.toLowerCase())
+        candidate?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        candidate?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job?.title?.toLowerCase().includes(searchTerm.toLowerCase())
       
       const matchesStatus = statusFilter === 'all' || app.status === statusFilter
       const matchesJob = jobFilter === 'all' || app.jobId === jobFilter

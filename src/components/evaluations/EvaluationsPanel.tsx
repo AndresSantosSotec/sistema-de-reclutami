@@ -114,7 +114,7 @@ export function EvaluationsPanel({
       return {
         ...candidate,
         applications: candidateApplications,
-        searchText: `${candidate.name} ${candidate.email} ${candidate.id}`.toLowerCase()
+        searchText: `${candidate.name || ''} ${candidate.email || ''} ${candidate.id || ''}`.toLowerCase()
       }
     })
   }, [candidates, applications])
@@ -141,8 +141,8 @@ export function EvaluationsPanel({
       const term = searchTerm.toLowerCase()
       filtered = filtered.filter(e => {
         const candidate = candidateMap.get(e.candidateId)
-        return candidate?.name.toLowerCase().includes(term) || 
-               candidate?.email.toLowerCase().includes(term) ||
+        return candidate?.name?.toLowerCase().includes(term) || 
+               candidate?.email?.toLowerCase().includes(term) ||
                e.interviewer?.toLowerCase().includes(term)
       })
     }

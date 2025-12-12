@@ -39,9 +39,9 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
   // Filtrar trabajos según los filtros
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = filters.searchTerm === '' || 
-      job.title.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-      job.requirements.toLowerCase().includes(filters.searchTerm.toLowerCase())
+      job.title?.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+      job.description?.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+      job.requirements?.toLowerCase().includes(filters.searchTerm.toLowerCase())
       
     const matchesStatus = filters.status === 'all' || job.status === filters.status
     const matchesContractType = filters.contractType === 'all' || job.contractType === filters.contractType
@@ -239,7 +239,7 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
 
   // Filtrar habilidades según búsqueda y categoría
   const filteredSkills = allSkills.filter(skill => {
-    const matchesSearch = skill.nombre.toLowerCase().includes(skillSearchTerm.toLowerCase())
+    const matchesSearch = skill.nombre?.toLowerCase().includes(skillSearchTerm.toLowerCase())
     const matchesCategory = skillCategoryFilter === 'all' || skill.categoria === skillCategoryFilter
     return matchesSearch && matchesCategory && !selectedSkills.includes(skill.id)
   })

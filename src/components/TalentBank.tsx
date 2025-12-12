@@ -105,9 +105,9 @@ export function TalentBank({
     
     const searchLower = searchTerm.toLowerCase()
     return talentBankCandidates.filter(candidate =>
-      candidate.name.toLowerCase().includes(searchLower) ||
-      candidate.email.toLowerCase().includes(searchLower) ||
-      candidate.skills?.some(skill => skill.toLowerCase().includes(searchLower))
+      candidate.name?.toLowerCase().includes(searchLower) ||
+      candidate.email?.toLowerCase().includes(searchLower) ||
+      candidate.skills?.some(skill => skill?.toLowerCase().includes(searchLower))
     )
   }, [talentBankCandidates, searchTerm, externalPagination])
 

@@ -103,7 +103,7 @@ export function Skills({ skills, onAddSkill, onUpdateSkill, onDeleteSkill }: Ski
 
   const filteredSkills = skills.filter(skill => {
     const matchesCategory = filterCategory === 'all' || skill.categoria === filterCategory
-    const matchesSearch = skill.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = skill.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          skill.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesCategory && matchesSearch
   })

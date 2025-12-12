@@ -50,7 +50,7 @@ export function Evaluations({ evaluations, applications, candidates, onAddEvalua
       return {
         ...candidate,
         applications: candidateApplications,
-        searchText: `${candidate.name} ${candidate.email} ${candidate.id}`.toLowerCase()
+        searchText: `${candidate.name || ''} ${candidate.email || ''} ${candidate.id || ''}`.toLowerCase()
       }
     })
   }, [candidates, applications])
