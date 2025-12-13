@@ -1,0 +1,19 @@
+# Sistema de Reclutamiento - BLOQUEADO para Google
+# Esta es una plataforma privada de administración
+User-agent: *
+Disallow: /
+
+# Explícitamente bloquear Google
+User-agent: Googlebot
+Disallow: /
+
+# Bloquear Bing
+User-agent: Bingbot
+Disallow: /
+
+# Bloquear otros bots
+User-agent: msnbot
+Disallow: /
+
+User-agent: slurp
+Disallow: /
