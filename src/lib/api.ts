@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+// URL del backend - usa variable de entorno o producción por defecto
+const API_URL = import.meta.env.VITE_API_URL || 'https://oportunidadescoosanjer.com.gt/api/v1';
+
 // Configuración base de Axios para el panel administrativo
 const api = axios.create({
-  baseURL: 'https://oportunidadescoosanjer.com.gt/api/v1',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

@@ -22,10 +22,10 @@ export function mapBackendJobToFrontend(backendJob: BackendJobOffer): FrontendJo
 
   // Manejar visibilidad: convertir a formato frontend
   // JobVisibility es 'public' | 'internal'
-  // El backend puede devolver 'Pública', 'Privada', 'publica', 'privada'
+  // El backend puede devolver 'Pública', 'Privada', 'Interna', 'publica', 'privada', 'interna'
   let visibility: 'public' | 'internal' = 'public'
   const visibilidadLower = String(backendJob.visibilidad || '').toLowerCase()
-  if (visibilidadLower === 'privada') {
+  if (visibilidadLower === 'privada' || visibilidadLower === 'interna') {
     visibility = 'internal'
   }
 

@@ -41,12 +41,13 @@ const reverseStatusMap: Record<JobStatus, string> = {
 
 const visibilityMap: Record<string, JobVisibility> = {
   'Pública': 'public',
-  'Privada': 'internal',
+  'Privada': 'internal',  // Mantener compatibilidad con datos antiguos
+  'Interna': 'internal',  // Nuevo valor correcto
 }
 
 const reverseVisibilityMap: Record<JobVisibility, string> = {
   'public': 'Pública',
-  'internal': 'Privada',
+  'internal': 'Interna',  // Corregido: ahora guarda como 'Interna' para colaboradores internos
 }
 
 export function JobsPage() {

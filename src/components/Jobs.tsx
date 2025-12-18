@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
-import { Plus, PencilSimple, Trash, Eye, EyeSlash, Calendar, X, Image as ImageIcon } from '@phosphor-icons/react'
+import { Plus, PencilSimple, Trash, Eye, EyeSlash, Calendar, X, Image as ImageIcon, ImagesSquare } from '@phosphor-icons/react'
+import { JobImageManager } from '@/components/JobImageManager'
 import type { JobOffer, ContractType, JobVisibility, JobStatus, JobCategory } from '@/lib/types'
 import { contractTypeLabels, jobStatusLabels, formatDate, daysUntilDeadline } from '@/lib/constants'
 import { toast } from 'sonner'
@@ -109,6 +110,7 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
   const [editingJob, setEditingJob] = useState<JobOffer | null>(null)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
   
   // Estados para habilidades
   const [allSkills, setAllSkills] = useState<Skill[]>([])
@@ -363,10 +365,10 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
                     id="salaryMin"
                     type="number"
                     min="0"
-                    step="100"
+                    step="0.01"
                     value={formData.salaryMin}
                     onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })}
-                    placeholder="Ej: 50000"
+                    placeholder="Ej: 5000.50"
                   />
                 </div>
                 <div className="space-y-2">
@@ -375,10 +377,10 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
                     id="salaryMax"
                     type="number"
                     min="0"
-                    step="100"
+                    step="0.01"
                     value={formData.salaryMax}
                     onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })}
-                    placeholder="Ej: 80000"
+                    placeholder="Ej: 8000.00"
                   />
                 </div>
               </div>
@@ -577,7 +579,33 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
                 </div>
               </div>
 
-              {!editingJob && (
+              {/* Sección de imágenes */}
+              {editingJob ? (
+                <div className="space-y-2">
+                  <Label>Imágenes del Puesto</Label>
+                  <div className="flex items-center gap-3">
+                    {editingJob.imageUrl && (
+                      <img 
+                        src={editingJob.imageUrl} 
+                        alt="Imagen actual"
+                        className="w-16 h-16 rounded object-cover border"
+                      />
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsImageManagerOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <ImagesSquare size={18} />
+                      Gestionar Imágenes
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Puedes agregar, ver o eliminar imágenes de esta oferta
+                  </p>
+                </div>
+              ) : (
                 <div className="space-y-2">
                   <Label htmlFor="image">Imagen del Puesto (opcional)</Label>
                   <Input
@@ -1032,6 +1060,30 @@ export function Jobs({ jobs, categories, onAddJob, onUpdateJob, onDeleteJob }: J
           </div>
         </CardContent>
       </Card>
+
+      {/* Diálogo para gestionar imágenes en edición */}
+      <Dialog open={isImageManagerOpen} onOpenChange={setIsImageManagerOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Gestionar Imágenes - {editingJob?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Agrega, visualiza o elimina imágenes de esta oferta laboral
+            </DialogDescription>
+          </DialogHeader>
+          {editingJob && (
+            <JobImageManager
+              jobId={editingJob.id}
+              images={editingJob.images || []}
+              onImagesChange={() => {
+                // Cerrar el diálogo y notificar
+                toast.success('Imágenes actualizadas')
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

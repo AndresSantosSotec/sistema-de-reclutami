@@ -1,7 +1,6 @@
 import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://oportunidadescoosanjer.com.gt/api/v1'
-
 // Configurar axios con el token del admin
 const getAuthHeaders = () => {
   const token = localStorage.getItem('admin_token')

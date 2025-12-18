@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Users from '@/components/Users';
+import Colaboradores from '@/components/Colaboradores';
 import userService, { AdminUser, CreateUserData, UpdateUserData } from '@/services/userService';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users as UsersIcon, UserCheck } from 'lucide-react';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('admins');
 
   const loadUsers = async () => {
     try {
@@ -72,21 +76,47 @@ export default function UsersPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
-    <Users
-      users={users}
-      onAddUser={handleAddUser}
-      onUpdateUser={handleUpdateUser}
-      onDeleteUser={handleDeleteUser}
-      onToggleActive={handleToggleActive}
-    />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Gestión de Usuarios</h1>
+        <p className="text-muted-foreground">
+          Administra usuarios del sistema y colaboradores internos
+        </p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="admins" className="flex items-center gap-2">
+            <UsersIcon className="h-4 w-4" />
+            Administradores
+          </TabsTrigger>
+          <TabsTrigger value="colaboradores" className="flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            Colaboradores Internos
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="admins" className="mt-6">
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <Users
+              users={users}
+              onAddUser={handleAddUser}
+              onUpdateUser={handleUpdateUser}
+              onDeleteUser={handleDeleteUser}
+              onToggleActive={handleToggleActive}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="colaboradores" className="mt-6">
+          <Colaboradores />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
