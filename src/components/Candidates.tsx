@@ -85,6 +85,10 @@ export function Candidates() {
     responsable: '',
     observaciones: ''
   })
+  
+  // Estado de eliminación
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Cargar candidatos con filtros y paginación
   useEffect(() => {
@@ -240,6 +244,35 @@ export function Candidates() {
       fecha_hasta: filters.fecha_hasta || undefined,
       min_experiencia: filters.min_experiencia ? parseFloat(filters.min_experiencia) : undefined
     })
+  }
+
+  const handleDeleteCandidate = async () => {
+    if (!selectedCandidateId || !selectedCandidateDetail) return
+    
+    setDeleting(true)
+    try {
+      await adminCandidateService.deleteCandidate(selectedCandidateId)
+      toast.success(`Candidato "${selectedCandidateDetail.nombre}" eliminado exitosamente`)
+      setShowDeleteDialog(false)
+      setSelectedCandidateId(null)
+      setSelectedCandidateDetail(null)
+      // Recargar la lista de candidatos
+      fetchCandidates({
+        search: searchTerm || undefined,
+        ubicacion: filters.ubicacion || undefined,
+        profesion: filters.profesion || undefined,
+        fecha_desde: filters.fecha_desde || undefined,
+        fecha_hasta: filters.fecha_hasta || undefined,
+        min_experiencia: filters.min_experiencia ? parseFloat(filters.min_experiencia) : undefined,
+        page: currentPage,
+        per_page: perPage
+      })
+    } catch (error: any) {
+      console.error('Error al eliminar candidato:', error)
+      toast.error(error.response?.data?.message || 'Error al eliminar el candidato')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   // Limpiar filtros
@@ -592,16 +625,28 @@ export function Candidates() {
                     </CardContent>
                   </Card>
 
-                  {/* Botón de Banco de Talento */}
-                  <Button 
-                    onClick={handleAddToTalentBank}
-                    disabled={isInTalentBank || addingToTalentBank}
-                    className="w-full gap-1.5 sm:gap-2 text-xs sm:text-sm py-1.5 sm:py-2"
-                    variant={isInTalentBank ? "outline" : "default"}
-                  >
-                    <StarFour size={14} weight={isInTalentBank ? "fill" : "regular"} className="sm:w-4 sm:h-4" />
-                    <span className="truncate">{isInTalentBank ? 'Ya está en el Banco de Talento' : 'Agregar al Banco de Talento'}</span>
-                  </Button>
+                  {/* Botones de acción */}
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleAddToTalentBank}
+                      disabled={isInTalentBank || addingToTalentBank}
+                      className="flex-1 gap-1.5 sm:gap-2 text-xs sm:text-sm py-1.5 sm:py-2"
+                      variant={isInTalentBank ? "outline" : "default"}
+                    >
+                      <StarFour size={14} weight={isInTalentBank ? "fill" : "regular"} className="sm:w-4 sm:h-4" />
+                      <span className="truncate">{isInTalentBank ? 'En Banco de Talento' : 'Agregar a Banco'}</span>
+                    </Button>
+                    <Button 
+                      onClick={() => setShowDeleteDialog(true)}
+                      variant="destructive"
+                      className="gap-1.5 sm:gap-2 text-xs sm:text-sm py-1.5 sm:py-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" className="sm:w-4 sm:h-4">
+                        <path fill="currentColor" d="M216 48h-40v-8a24 24 0 0 0-24-24h-48a24 24 0 0 0-24 24v8H40a8 8 0 0 0 0 16h8v144a16 16 0 0 0 16 16h128a16 16 0 0 0 16-16V64h8a8 8 0 0 0 0-16M96 40a8 8 0 0 1 8-8h48a8 8 0 0 1 8 8v8H96Zm96 168H64V64h128Zm-80-104v64a8 8 0 0 1-16 0v-64a8 8 0 0 1 16 0m48 0v64a8 8 0 0 1-16 0v-64a8 8 0 0 1 16 0"/>
+                      </svg>
+                      <span className="hidden sm:inline">Eliminar</span>
+                    </Button>
+                  </div>
 
                   <Separator />
 
@@ -996,6 +1041,75 @@ export function Candidates() {
               )}
             </div>
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de confirmación de eliminación */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 256 256" fill="currentColor">
+                <path d="M236.8 188.09L149.35 36.22a24.76 24.76 0 0 0-42.7 0L19.2 188.09a23.51 23.51 0 0 0 0 23.72A24.35 24.35 0 0 0 40.55 224h174.9a24.35 24.35 0 0 0 21.33-12.19a23.51 23.51 0 0 0 .02-23.72M120 104a8 8 0 0 1 16 0v40a8 8 0 0 1-16 0Zm8 88a12 12 0 1 1 12-12a12 12 0 0 1-12 12"/>
+              </svg>
+              ¿Eliminar candidato?
+            </DialogTitle>
+            <DialogDescription className="space-y-3 pt-2">
+              <p>Estás a punto de eliminar permanentemente a:</p>
+              <div className="bg-muted p-3 rounded-md">
+                <p className="font-semibold">{selectedCandidateDetail?.nombre}</p>
+                <p className="text-sm text-muted-foreground">{selectedCandidateDetail?.email}</p>
+              </div>
+              <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-md space-y-2">
+                <p className="font-semibold text-destructive text-sm">Esta acción eliminará:</p>
+                <ul className="text-xs space-y-1 ml-4 list-disc text-foreground/80">
+                  <li>Cuenta de usuario del candidato</li>
+                  <li>Información personal y de contacto</li>
+                  <li>Educación y experiencia laboral</li>
+                  <li>Habilidades y referencias</li>
+                  <li>Todas las postulaciones a ofertas</li>
+                  <li>CVs y documentos adjuntos</li>
+                  <li>Evaluaciones y pruebas psicométricas</li>
+                  <li>Registro en Banco de Talento (si aplica)</li>
+                  <li>Alertas de empleo y favoritos</li>
+                  <li>Notificaciones asociadas</li>
+                </ul>
+              </div>
+              <p className="text-sm font-semibold text-destructive">⚠️ Esta acción NO se puede deshacer.</p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={deleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteCandidate}
+              disabled={deleting}
+              className="gap-2"
+            >
+              {deleting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
+                    <path d="M216 48h-40v-8a24 24 0 0 0-24-24h-48a24 24 0 0 0-24 24v8H40a8 8 0 0 0 0 16h8v144a16 16 0 0 0 16 16h128a16 16 0 0 0 16-16V64h8a8 8 0 0 0 0-16M96 40a8 8 0 0 1 8-8h48a8 8 0 0 1 8 8v8H96Zm96 168H64V64h128Zm-80-104v64a8 8 0 0 1-16 0v-64a8 8 0 0 1 16 0m48 0v64a8 8 0 0 1-16 0v-64a8 8 0 0 1 16 0"/>
+                  </svg>
+                  Sí, eliminar permanentemente
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
