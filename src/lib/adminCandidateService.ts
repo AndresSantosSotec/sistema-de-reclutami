@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+const API_URL = import.meta.env.VITE_API_URL || 'https://oportunidadescoosanjer.com.gt/api/v1'
 
 // Configurar axios con el token del admin
 const getAuthHeaders = () => {
@@ -291,6 +291,20 @@ export const adminCandidateService = {
       return response.data
     } catch (error: any) {
       console.error('❌ [API ERROR] Error al analizar candidato:', error.response?.data || error.message)
+      throw error
+    }
+  },
+
+  /**
+   * Eliminar candidato (y su cuenta de usuario asociada)
+   */
+  async deleteCandidate(id: number): Promise<{ success: boolean; message: string }> {
+    try {
+      const url = `${API_URL}/admin/candidates/${id}`
+      const response = await axios.delete(url, getAuthHeaders())
+      return response.data
+    } catch (error: any) {
+      console.error('❌ [API ERROR] Error al eliminar candidato:', error.response?.data || error.message)
       throw error
     }
   }
